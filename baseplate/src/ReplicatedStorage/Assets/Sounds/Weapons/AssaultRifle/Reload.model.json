@@ -1,0 +1,6 @@
+{
+  "className": "Sound",
+  "properties": {
+    "RollOffMode": "InverseTapered"
+  }
+}

@@ -1,0 +1,88 @@
+{
+  "$comment": "What maintainer/baseplate.js copies out of a live game place to make the team baseplate, and what it strips. Rule: keep what every Runner game shares; drop what one game added. Extracted 2026-10-06 from Joust Tycoon, cross-checked against FPSTowerDefense and SecureTheConcert.",
+  "sourcePlaceId": 0,
+  "take": [
+    {
+      "path": "ServerScriptService.Runner",
+      "out": "ServerScriptService.Runner",
+      "remove": [
+        "Components.JoustTycoon",
+        "Shared.JoustTycoon",
+        "Shared.getConfig.Castle",
+        "Shared.getConfig.Gear",
+        "Shared.getConfig.Joust",
+        "Shared.getConfig.Knights",
+        "Shared.getConfig.Rebirth"
+      ],
+      "moveChildren": {
+        "Disabled": "Components.Generic"
+      },
+      "class": "Script"
+    },
+    {
+      "path": "ServerScriptService.AdminSystem",
+      "out": "ServerScriptService.AdminSystem",
+      "remove": [
+        "PackageLink",
+        "Commands.GiveGold",
+        "Commands.SetGear"
+      ],
+      "class": "Folder"
+    },
+    {
+      "path": "StarterPlayer.StarterPlayerScripts.Runner",
+      "out": "StarterPlayerScripts.Runner",
+      "remove": [
+        "Components.JoustTycoon"
+      ],
+      "keepOnly": {
+        "Components.UI": [
+          "Button",
+          "Frame",
+          "Slot",
+          "ModelViewport",
+          "PhysicalViewport",
+          "PlayerHeadshot",
+          "RainbowGradient"
+        ]
+      },
+      "moveChildren": {
+        "Disabled": "Components.Generic"
+      },
+      "class": "LocalScript"
+    },
+    {
+      "path": "ReplicatedStorage.Assets",
+      "out": "ReplicatedStorage.Assets",
+      "keepOnly": {
+        "": [
+          "Models",
+          "Gui",
+          "VFX",
+          "Sounds",
+          "Animations",
+          "Misc",
+          "Tool"
+        ],
+        "Models": [
+          "BaseRig",
+          "Viewmodel"
+        ],
+        "Gui": [
+          "HotbarItem"
+        ],
+        "VFX": [
+          "DebrisBurst",
+          "Bullet"
+        ],
+        "Animations": []
+      },
+      "ensureFolders": [
+        "Misc",
+        "Tool",
+        "Animations"
+      ],
+      "class": "Folder"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+* text=auto
+*.sh text eol=lf
+*.ps1 text eol=crlf
+*.luau text eol=lf
+*.png binary
+*.npz binary
+*.rbxl binary
+*.rbxm binary

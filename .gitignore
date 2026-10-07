@@ -1,0 +1,8 @@
+.env
+*.env
+__pycache__/
+*.pyc
+node_modules/
+skills/assetshot/cache/
+skills/importmeshtools/vendor/robloxMeshTools/
+baseplate/.extract/

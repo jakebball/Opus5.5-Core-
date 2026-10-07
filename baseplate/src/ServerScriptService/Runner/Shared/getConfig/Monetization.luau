@@ -1,0 +1,4 @@
+return {
+	DeveloperProducts = {},
+	Gamepasses = {},
+}

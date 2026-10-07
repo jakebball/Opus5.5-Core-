@@ -1,0 +1,34 @@
+{
+  "name": "soft-painted",
+  "title": "Soft Painted",
+  "summary": "The soft hand-painted look: the same recipes as painted-toon with no toon pass, a gentle key light, warm tops, cool undersides, ambient occlusion and warm convex edges. Reads like Command an Army's custom-textured units; no outlines.",
+  "from": "Joust Tycoon, 2026-10-04 (art direction A, before the user chose F)",
+  "status": "explored, not adopted by a game",
+  "finish": {
+    "toon": false
+  },
+  "ink": null,
+  "palette": {},
+  "painters": {
+    "wood": {"brush": "wood.ash_grain@1"},
+    "metal": {"brush": "metal.iron@1"},
+    "brass": {"brush": "metal.iron@1", "options": {"base": "Brass", "light": "BrassLight", "dark": "Leather", "rust": false}},
+    "rivets": {"brush": "metal.riveted@1"},
+    "leather": {"brush": "leather.scuffed@1"},
+    "dark leather": {"brush": "leather.scuffed@1", "options": {"base": "LeatherDark", "light": "Leather", "dark": "LeatherDark"}},
+    "stitched leather": {"brush": "leather.stitched@1"},
+    "studded strap": {"brush": "leather.studded_strap@1"},
+    "binding": {"brush": "leather.binding@1"},
+    "saddle": {"brush": "leather.saddle@1"},
+    "team cloth": {"brush": "cloth.team_plain@1"},
+    "quilted cloth": {"brush": "cloth.quilt_channels@1"},
+    "quilted sleeve": {"brush": "cloth.quilt_bands@1"},
+    "placket": {"brush": "cloth.placket@1"},
+    "patch": {"brush": "cloth.patch@1"},
+    "embroidered band": {"brush": "cloth.embroidered_band@1"},
+    "embroidered tail": {"brush": "cloth.embroidered_tail@1"},
+    "gathered cloth": {"brush": "cloth.gathered@1"},
+    "coat": {"brush": "fur.coat_strokes@1"},
+    "hair": {"brush": "fur.hair_strands@1"}
+  }
+}

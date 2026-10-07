@@ -1,0 +1,37 @@
+{
+  "className": "ParticleEmitter",
+  "properties": {
+    "Rate": 0.0,
+    "Drag": 0.6000000238418579,
+    "FlipbookStartRandom": true,
+    "Transparency": {
+      "NumberSequence": {
+        "keypoints": [
+          {
+            "time": 0.0,
+            "value": 0.0,
+            "envelope": 0.0
+          },
+          {
+            "time": 0.75,
+            "value": 0.0,
+            "envelope": 0.0
+          },
+          {
+            "time": 1.0,
+            "value": 1.0,
+            "envelope": 0.0
+          }
+        ]
+      }
+    },
+    "TextureContent": "rbxassetid://91809408162145",
+    "FlipbookLayout": "Grid4x4",
+    "FlipbookFramerate": {
+      "NumberRange": [
+        0.0,
+        0.0
+      ]
+    }
+  }
+}

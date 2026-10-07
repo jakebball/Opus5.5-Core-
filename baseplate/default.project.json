@@ -1,0 +1,59 @@
+{
+  "name": "RunnerBaseplate",
+  "tree": {
+    "$className": "DataModel",
+    "ServerScriptService": {
+      "$className": "ServerScriptService",
+      "Runner": { "$path": "src/ServerScriptService/Runner" },
+      "AdminSystem": { "$path": "src/ServerScriptService/AdminSystem" }
+    },
+    "StarterPlayer": {
+      "$className": "StarterPlayer",
+      "StarterPlayerScripts": {
+        "$className": "StarterPlayerScripts",
+        "Runner": { "$path": "src/StarterPlayerScripts/Runner" }
+      }
+    },
+    "ReplicatedStorage": {
+      "$className": "ReplicatedStorage",
+      "Assets": { "$path": "src/ReplicatedStorage/Assets" }
+    },
+    "Workspace": {
+      "$className": "Workspace",
+      "Baseplate": {
+        "$className": "Part",
+        "$properties": {
+          "Anchored": true,
+          "Locked": true,
+          "Size": [512, 16, 512],
+          "Position": [0, -8, 0],
+          "Color": [0.357, 0.365, 0.412],
+          "TopSurface": "Smooth",
+          "BottomSurface": "Smooth"
+        },
+        "Texture": {
+          "$className": "Texture",
+          "$properties": {
+            "Texture": "rbxassetid://6372755229",
+            "Face": "Top",
+            "Color3": [0, 0, 0],
+            "Transparency": 0.8,
+            "StudsPerTileU": 8,
+            "StudsPerTileV": 8
+          }
+        }
+      },
+      "SpawnLocation": {
+        "$className": "SpawnLocation",
+        "$properties": {
+          "Anchored": true,
+          "Size": [12, 1, 12],
+          "Position": [0, 0.5, 0],
+          "Duration": 0,
+          "TopSurface": "Smooth",
+          "BottomSurface": "Smooth"
+        }
+      }
+    }
+  }
+}

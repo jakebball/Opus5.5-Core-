@@ -1,0 +1,28 @@
+{
+  "$comment": "Merge what you want into ~/.claude/settings.json. Allows the setup's own scripts and read-only Studio tools without prompts, and denies what the rules forbid: starting playtests and the known-broken script edit endpoints.",
+  "permissions": {
+    "allow": [
+      "Bash(node ~/.claude/skills/*)",
+      "Bash(node */.claude/skills/*)",
+      "Bash(node tools/*)",
+      "mcp__robloxstudio__get_instance_children",
+      "mcp__robloxstudio__get_instance_properties",
+      "mcp__robloxstudio__get_descendants",
+      "mcp__robloxstudio__get_attributes",
+      "mcp__robloxstudio__get_tagged",
+      "mcp__robloxstudio__get_tags",
+      "mcp__robloxstudio__get_place_info",
+      "mcp__robloxstudio__get_services",
+      "mcp__robloxstudio__get_output_log",
+      "mcp__robloxstudio__search_objects",
+      "mcp__robloxstudio__grep_scripts"
+    ],
+    "deny": [
+      "mcp__robloxstudio__start_playtest",
+      "mcp__robloxstudio__stop_playtest",
+      "mcp__robloxstudio__edit_script_lines",
+      "mcp__robloxstudio__find_and_replace_in_scripts",
+      "mcp__robloxstudio__get_script_analysis"
+    ]
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "className": "Sound",
+  "properties": {
+    "Volume": 0.25,
+    "AudioContent": "rbxassetid://85943305941645"
+  }
+}

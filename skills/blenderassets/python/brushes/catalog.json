@@ -1,0 +1,2467 @@
+{
+ "brushes": [
+  {
+   "key": "cloth.bolt@1",
+   "id": "cloth.bolt",
+   "version": 1,
+   "material": "cloth",
+   "fixture": "bolt",
+   "tint": false,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon Greenmeadow, 2026-10-05 (MeadowFairStall cloth goods)",
+   "summary": "A bolt of cloth in colour `dye` wound round object X (`radius`): twill along the roll, the wound layers as rings on the end faces round a dark core, optional woven stripes at fractions `stripes` along the roll from its middle",
+   "status": "approved",
+   "options": {
+    "dye": "required",
+    "radius": "required",
+    "stripes": null,
+    "seed": 0.0
+   }
+  },
+  {
+   "key": "cloth.dagged_valance@1",
+   "id": "cloth.dagged_valance",
+   "version": 1,
+   "material": "cloth",
+   "fixture": "valance",
+   "tint": true,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon castle (Rebirth 0), 2026-10-05 (curtain wall valance)",
+   "summary": "Dagged team valance along X that tiles every `period`: near-white cloth, gold band along the top, gold hem following the dags, gold roundel in each dag (gold at alpha 0); lit like a wall turned to every side (surface.wall_light), no edge light on the dag cuts",
+   "status": "approved",
+   "options": {
+    "top": "required",
+    "pitch": "required",
+    "notch": "required",
+    "point": "required",
+    "period": 17.5,
+    "hem": 0.13,
+    "band": [
+     0.07,
+     0.2
+    ]
+   }
+  },
+  {
+   "key": "cloth.embroidered_band@1",
+   "id": "cloth.embroidered_band",
+   "version": 1,
+   "material": "cloth",
+   "fixture": "band",
+   "tint": true,
+   "styles": [
+    "painted-toon",
+    "soft-painted"
+   ],
+   "source": "Joust Tycoon starter set (Ashwood Lance, Padded Gambeson, Farm Rouncey), 2026-10-04",
+   "summary": "Team cloth band with twill, gold borders and gold lozenges; gold at alpha 0 stays untinted",
+   "status": "approved",
+   "options": {
+    "along_samples": "required",
+    "half_samples": "required",
+    "lozenge_step": 0.34
+   }
+  },
+  {
+   "key": "cloth.embroidered_tail@1",
+   "id": "cloth.embroidered_tail",
+   "version": 1,
+   "material": "cloth",
+   "fixture": "tail",
+   "tint": true,
+   "styles": [
+    "painted-toon",
+    "soft-painted"
+   ],
+   "source": "Joust Tycoon starter set (Ashwood Lance, Padded Gambeson, Farm Rouncey), 2026-10-04",
+   "summary": "Swallowtail cloth tail with gold borders, a gold band and fringe (shapelib.hanging_tail)",
+   "status": "approved",
+   "options": {
+    "length": "required",
+    "notch": "required",
+    "half_top": "required",
+    "half_end": "required"
+   }
+  },
+  {
+   "key": "cloth.gathered@1",
+   "id": "cloth.gathered",
+   "version": 1,
+   "material": "cloth",
+   "fixture": "knot",
+   "tint": true,
+   "styles": [
+    "painted-toon",
+    "soft-painted"
+   ],
+   "source": "Joust Tycoon starter set (Ashwood Lance, Padded Gambeson, Farm Rouncey), 2026-10-04",
+   "summary": "Gathered cloth: darker creases where pointiness drops (shapelib.gathered_knot)",
+   "status": "approved",
+   "options": {}
+  },
+  {
+   "key": "cloth.heraldic_banner@1",
+   "id": "cloth.heraldic_banner",
+   "version": 1,
+   "material": "cloth",
+   "fixture": "banner",
+   "tint": true,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon castle (Rebirth 0), 2026-10-05 (tower and gatehouse banners and pennants)",
+   "summary": "Castle-scale heraldic banner on shapelib.hanging_tail: near-white team cloth, gold border, gold bands at the top and above the swallowtail, optional gold lozenge device (emblem); gold at alpha 0 stays gold on every team",
+   "status": "approved",
+   "options": {
+    "length": "required",
+    "half_top": "required",
+    "half_end": "required",
+    "notch": "required",
+    "border": 0.22,
+    "emblem": true
+   }
+  },
+  {
+   "key": "cloth.homespun@1",
+   "id": "cloth.homespun",
+   "version": 1,
+   "material": "cloth",
+   "fixture": "tunic",
+   "tint": true,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon Greenmeadow, 2026-10-05 (MeadowVillagers outfits)",
+   "summary": "Dyed homespun wool, near-white for the TintMask dye: coarse tabby weave, mottled hand-dyed tone, soft hanging folds, dust toward the hem (grime_below); untinted options at alpha 0: trims [(bottom, top)] tablet-woven chevron bands, stripes (pitch, fraction) and checks (size) of undyed linen, lacing (z_top, z_bottom, half_width) a laced V over a linen shirt; patches and rolled cuffs stay dyed",
+   "status": "approved",
+   "options": {
+    "seed": 0.0,
+    "pitch": 0.05,
+    "grime_below": null,
+    "folds": 0.28,
+    "mottle": 0.35,
+    "trims": [],
+    "stripes": null,
+    "checks": null,
+    "lacing": null,
+    "patches": [],
+    "rolled": null
+   }
+  },
+  {
+   "key": "cloth.linen@1",
+   "id": "cloth.linen",
+   "version": 1,
+   "material": "cloth",
+   "fixture": "tunic",
+   "tint": true,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon Greenmeadow, 2026-10-05 (MeadowVillagers aprons, coifs, shirts, hose)",
+   "summary": "Undyed linen (aprons, coifs, shirts): cream with a fine tabby weave, soft hanging folds, a few stains, optional dust (grime_below) and a stitched hem line at `hem` (z); `tone` names another ground colour; alpha 0, so a TintMask dye never reaches it",
+   "status": "approved",
+   "options": {
+    "seed": 0.0,
+    "pitch": 0.045,
+    "folds": 0.22,
+    "stains": 0.3,
+    "grime_below": null,
+    "hem": null,
+    "tone": null
+   }
+  },
+  {
+   "key": "cloth.motley@1",
+   "id": "cloth.motley",
+   "version": 1,
+   "material": "cloth",
+   "fixture": "tunic",
+   "tint": true,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon Greenmeadow, 2026-10-05 (MeadowVillagers jester)",
+   "summary": "Mi-parti motley: the half of the piece on `dyed_side` of object x = 0 (+1 or -1) is cloth.homespun (dyed), the other half fixed cream at alpha 0, split down a stitched seam; 0 dyes all of it, 2 none; `bells` are brass bell centres painted on, untinted",
+   "status": "approved",
+   "options": {
+    "dyed_side": 1.0,
+    "seed": 0.0,
+    "pitch": 0.05,
+    "dags": null,
+    "bells": []
+   }
+  },
+  {
+   "key": "cloth.patch@1",
+   "id": "cloth.patch",
+   "version": 1,
+   "material": "cloth",
+   "fixture": "band",
+   "tint": false,
+   "styles": [
+    "painted-toon",
+    "soft-painted"
+   ],
+   "source": "Joust Tycoon starter set (Ashwood Lance, Padded Gambeson, Farm Rouncey), 2026-10-04",
+   "summary": "A hand-sewn patch with whip stitches over its edge (cloth colour name, half, length)",
+   "status": "approved",
+   "options": {
+    "cloth": "required",
+    "half": "required",
+    "length": "required"
+   }
+  },
+  {
+   "key": "cloth.pennant@1",
+   "id": "cloth.pennant",
+   "version": 1,
+   "material": "cloth",
+   "fixture": "bunting",
+   "tint": true,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon Greenmeadow, 2026-10-05 (MeadowFairBunting; hub well flags)",
+   "summary": "A bunting pennant `width` x `length` on a PaintCoord of (pennant index x stride + across, drop from the line): woven cloth, the top folded over the line as a stitched sleeve (`hem`), a running stitch inset round the cut edges; tinted near-white at alpha 1, or festive=True dyes each pennant the next of `dyes` (RGB, untinted)",
+   "status": "approved",
+   "options": {
+    "width": "required",
+    "length": "required",
+    "festive": false,
+    "hem": 0.22,
+    "seed": 0.0,
+    "stride": 10.0,
+    "dyes": [
+     "MeadowFairWoad",
+     "MeadowFairSaffron",
+     "MeadowFairMadder",
+     "MeadowFairTeal",
+     "MeadowFairCream",
+     "MeadowFairPlum",
+     "MeadowFairRose"
+    ]
+   }
+  },
+  {
+   "key": "cloth.placket@1",
+   "id": "cloth.placket",
+   "version": 1,
+   "material": "cloth",
+   "fixture": "band",
+   "tint": false,
+   "styles": [
+    "painted-toon",
+    "soft-painted"
+   ],
+   "source": "Joust Tycoon starter set (Ashwood Lance, Padded Gambeson, Farm Rouncey), 2026-10-04",
+   "summary": "A seamed cloth strip with bound edges (shapelib.cloth_band, half width)",
+   "status": "approved",
+   "options": {
+    "half": "required"
+   }
+  },
+  {
+   "key": "cloth.quilt_bands@1",
+   "id": "cloth.quilt_bands",
+   "version": 1,
+   "material": "cloth",
+   "fixture": "sleeve",
+   "tint": false,
+   "styles": [
+    "painted-toon",
+    "soft-painted"
+   ],
+   "source": "Joust Tycoon starter set (Ashwood Lance, Padded Gambeson, Farm Rouncey), 2026-10-04",
+   "summary": "Horizontal quilted bands round a vertical sleeve (pitch, origin)",
+   "status": "approved",
+   "options": {
+    "pitch": 0.33,
+    "origin": 2.45
+   }
+  },
+  {
+   "key": "cloth.quilt_channels@1",
+   "id": "cloth.quilt_channels",
+   "version": 1,
+   "material": "cloth",
+   "fixture": "channels",
+   "tint": false,
+   "styles": [
+    "painted-toon",
+    "soft-painted"
+   ],
+   "source": "Joust Tycoon starter set (Ashwood Lance, Padded Gambeson, Farm Rouncey), 2026-10-04",
+   "summary": "Quilting driven by PaintCoord: seams exactly in shapelib quilt_puffs / roll_ring / channel_dome grooves, pillow rows, wear, stains",
+   "status": "approved",
+   "options": {
+    "scale": "required",
+    "pitch": "required",
+    "rows": null,
+    "row_offset": 0.0,
+    "base": "Linen",
+    "light": "Linen",
+    "dark": "LinenShade",
+    "stitch": "LinenStitch",
+    "dirt_floor": null,
+    "seed": 0.0
+   }
+  },
+  {
+   "key": "cloth.sail_canvas@1",
+   "id": "cloth.sail_canvas",
+   "version": 1,
+   "material": "cloth",
+   "fixture": "sail",
+   "tint": false,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon Greenmeadow, 2026-10-05 (MeadowWindmill sails)",
+   "summary": "Sailcloth (object X across the sail, Z out along it to `length`): undyed canvas in sewn cloths `cloths` wide along the sail, a few darker repair patches, grime toward the tip; no baked occlusion (spars would print as bands), both faces lit as the front; wrap with brushes.wrap.in_frame on a turning sail",
+   "status": "approved",
+   "options": {
+    "length": 12.0,
+    "width": 3.0,
+    "cloths": 0.95,
+    "seed": 1.0
+   }
+  },
+  {
+   "key": "cloth.stripe_canvas@1",
+   "id": "cloth.stripe_canvas",
+   "version": 1,
+   "material": "cloth",
+   "fixture": "sheet",
+   "tint": true,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon Greenmeadow, 2026-10-05 (fair pavilions, stall awnings, cart tarps and tilts; hub storefront stripes)",
+   "summary": "Near-white canvas for one tinted stripe gore on a sheet whose PaintCoord is (fraction across the gore, studs along): weave, a sewn seam and running stitch inside each long edge (`seam` of the width; 0 for none); pieces without PaintCoord get plain canvas; alpha = stripe_alpha (tinted=False returns RGB). Bake a fixed colour in with brushes.wrap.baked_tint",
+   "status": "approved",
+   "options": {
+    "stripe_alpha": 1.0,
+    "seam": 0.035,
+    "weave": 0.06,
+    "seed": 0.0,
+    "tinted": true
+   }
+  },
+  {
+   "key": "cloth.team_plain@1",
+   "id": "cloth.team_plain",
+   "version": 1,
+   "material": "cloth",
+   "fixture": "box",
+   "tint": true,
+   "styles": [
+    "painted-toon",
+    "soft-painted"
+   ],
+   "source": "Joust Tycoon starter set (Ashwood Lance, Padded Gambeson, Farm Rouncey), 2026-10-04",
+   "summary": "Near-white cloth for TintMask team colour, optional stripes or rim shading",
+   "status": "approved",
+   "options": {
+    "stripes": null,
+    "rim": null
+   }
+  },
+  {
+   "key": "fibre.burlap@1",
+   "id": "fibre.burlap",
+   "version": 1,
+   "material": "cloth",
+   "fixture": "dome",
+   "tint": false,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon castle (Rebirth 0), 2026-10-05 (courtyard dressing: supply pile, hay cart, trough)",
+   "summary": "Coarse burlap sacking: open basket weave (pitch) with dark holes, slubs, stains, dusty tops; seam=(axis, value) adds a stitched seam in object space",
+   "status": "approved",
+   "options": {
+    "rotation": null,
+    "pitch": 0.12,
+    "seam": null,
+    "stencil": null
+   }
+  },
+  {
+   "key": "fibre.hay@1",
+   "id": "fibre.hay",
+   "version": 1,
+   "material": "straw",
+   "fixture": "heap",
+   "tint": false,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon castle (Rebirth 0), 2026-10-05 (courtyard dressing: supply pile, hay cart, trough)",
+   "summary": "Loose hay or straw: tangled strands in two directions (flow, cross; object space), posterised gold, dark gaps between strands, greener patches",
+   "status": "approved",
+   "options": {
+    "flow": [
+     1.0,
+     0.25,
+     0.1
+    ],
+    "cross": [
+     0.2,
+     1.0,
+     0.6
+    ],
+    "strands": 13.0,
+    "seed": 0.0
+   }
+  },
+  {
+   "key": "fibre.hay_bale@1",
+   "id": "fibre.hay_bale",
+   "version": 1,
+   "material": "straw",
+   "fixture": "box",
+   "tint": false,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon castle (Rebirth 0), 2026-10-05 (courtyard dressing: supply pile, hay cart, trough)",
+   "summary": "A packed bale: strands along object `axis`, stubbly cut ends, twine bands at `bands` (object-space positions along the axis)",
+   "status": "approved",
+   "options": {
+    "rotation": null,
+    "axis": 0,
+    "bands": [
+     -0.45,
+     0.45
+    ],
+    "twine": 0.055,
+    "seed": 0.0
+   }
+  },
+  {
+   "key": "fibre.laid_rope@1",
+   "id": "fibre.laid_rope",
+   "version": 1,
+   "material": "rope",
+   "fixture": "cord",
+   "tint": false,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon Greenmeadow, 2026-10-05 (MeadowFairBunting lines, pavilion guys, cart and wagon ties)",
+   "summary": "A laid rope on a tube's PaintCoord (fraction round, studs along): three-strand twist that stays on the rope however the line sags; tinted=True returns alpha 0 so it keeps its colour on a TintMask part",
+   "status": "approved",
+   "options": {
+    "pitch": 0.16,
+    "tinted": false
+   }
+  },
+  {
+   "key": "fibre.plaited_straw@1",
+   "id": "fibre.plaited_straw",
+   "version": 1,
+   "material": "straw",
+   "fixture": "hat",
+   "tint": true,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon Greenmeadow, 2026-10-05 (MeadowVillagers farmhand's hat)",
+   "summary": "A hat sewn from a spiral of plaited straw round an axis through `centre` (object space): concentric plait rows (`pitch`) on crown and brim, each a herringbone of lit strands, dark gaps between rows; alpha 0, so it keeps its paint on a TintMask part",
+   "status": "approved",
+   "options": {
+    "centre": [
+     0.0,
+     0.0
+    ],
+    "pitch": 0.07,
+    "seed": 0.0
+   }
+  },
+  {
+   "key": "fibre.rick@1",
+   "id": "fibre.rick",
+   "version": 1,
+   "material": "straw",
+   "fixture": "rick",
+   "tint": false,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon Greenmeadow, 2026-10-05 (MeadowHay haystack; MeadowWindmill cap and shed roof)",
+   "summary": "A round haystack about a vertical axis through `centre`: fresh gold hay in rough horizontal layers on the body, a weathered thatch cap above `eave` combed down the slope, measured round at `radius` with noise that repeats once round (no seam); eave far below the piece paints all thatch (a round thatched roof)",
+   "status": "approved",
+   "options": {
+    "centre": [
+     0.0,
+     0.0
+    ],
+    "eave": 3.75,
+    "radius": 3.0,
+    "seed": 5.0
+   }
+  },
+  {
+   "key": "fibre.rope@1",
+   "id": "fibre.rope",
+   "version": 1,
+   "material": "rope",
+   "fixture": "cylinder",
+   "tint": false,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon castle (Rebirth 0), 2026-10-05 (courtyard dressing: supply pile, hay cart, trough)",
+   "summary": "A plain laid rope or cord whose length runs along object `axis` (twist pitch in studs)",
+   "status": "approved",
+   "options": {
+    "axis": 2,
+    "pitch": 0.16
+   }
+  },
+  {
+   "key": "fibre.rope_coil@1",
+   "id": "fibre.rope_coil",
+   "version": 1,
+   "material": "rope",
+   "fixture": "coil",
+   "tint": false,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon castle (Rebirth 0), 2026-10-05 (courtyard dressing: supply pile, hay cart, trough)",
+   "summary": "A coil of rope modelled as one stretched torus round object Z: stacked loops `rope` thick from z = base, each laid with three-strand twist",
+   "status": "approved",
+   "options": {
+    "base": 0.0,
+    "rope": 0.24,
+    "major": 0.8,
+    "pitch": 0.2
+   }
+  },
+  {
+   "key": "fibre.sheaf@1",
+   "id": "fibre.sheaf",
+   "version": 1,
+   "material": "straw",
+   "fixture": "sheaf",
+   "tint": false,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon Greenmeadow, 2026-10-05 (MeadowHay stook)",
+   "summary": "One bound sheaf of cut wheat standing up world Z: straw strokes up its length, a twine binding at `waist`, a head of ripe ears above `ear_line`, cut stalk ends on the foot",
+   "status": "approved",
+   "options": {
+    "waist": 1.2,
+    "ear_line": 2.25,
+    "seed": 0.0
+   }
+  },
+  {
+   "key": "fibre.wicker@1",
+   "id": "fibre.wicker",
+   "version": 1,
+   "material": "wicker",
+   "fixture": "basket",
+   "tint": false,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon Greenmeadow, 2026-10-05 (MeadowFairStall baskets)",
+   "summary": "A woven basket round object Z from z = base to base + height: over-under weavers in rows `rows` tall stepping half a spoke a row (spokes round), dark gaps, a plaited rim band `rim` deep at the top",
+   "status": "approved",
+   "options": {
+    "height": "required",
+    "rows": 0.16,
+    "spokes": 18,
+    "rim": 0.12,
+    "base": 0.0
+   }
+  },
+  {
+   "key": "fire.embers@1",
+   "id": "fire.embers",
+   "version": 1,
+   "material": "fire",
+   "fixture": "hearth",
+   "tint": false,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon Greenmeadow, 2026-10-05 (hub smithy forge)",
+   "summary": "A bed of coals, unlit: dark lumps, glowing orange cracks between them, white-hot toward `centre` (world) within `radius`, in hard toon bands; undersides stay dark coal",
+   "status": "approved",
+   "options": {
+    "centre": "required",
+    "radius": "required"
+   }
+  },
+  {
+   "key": "fire.flame@1",
+   "id": "fire.flame",
+   "version": 1,
+   "material": "fire",
+   "fixture": "blades",
+   "tint": false,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon Greenmeadow, 2026-10-05 (hub smithy forge)",
+   "summary": "Toon flame tongues, unlit: white-gold at the root (base_z) through orange to a deep red tip `height` studs up, in hard bands, a darker rim",
+   "status": "approved",
+   "options": {
+    "base_z": "required",
+    "height": "required"
+   }
+  },
+  {
+   "key": "foliage.bark@1",
+   "id": "foliage.bark",
+   "version": 1,
+   "material": "bark",
+   "fixture": "limb",
+   "tint": false,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon Greenmeadow, 2026-10-05 (MeadowTrees trunks and limbs)",
+   "summary": "Ridged bark on a limb loft's PaintCoord (fraction around, studs along): `fissures` dark vertical cracks round the limb broken every `pitch` studs or so, lit ridges between, moss creeping up from the ground below moss_below (moss=None for none)",
+   "status": "approved",
+   "options": {
+    "fissures": 11.0,
+    "pitch": 0.9,
+    "base": "MeadowBark",
+    "light": "MeadowFoliageBarkRidge",
+    "dark": "MeadowBarkDark",
+    "fissure": "MeadowFoliageBarkFissure",
+    "moss": "MeadowMoss",
+    "moss_below": 1.6,
+    "seed": 0.0
+   }
+  },
+  {
+   "key": "foliage.leaf_dabs@1",
+   "id": "foliage.leaf_dabs",
+   "version": 1,
+   "material": "leaves",
+   "fixture": "crown",
+   "tint": false,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon Greenmeadow, 2026-10-05 (MeadowTrees crowns, MeadowShrubs bushes and hedges)",
+   "summary": "One leaf mass (crown lobe, bush, hedge clump) as shingled leaf-cluster dabs over a warm sunlit cap, the lit body and a hard cool shadow band below `band` that scallops with the dabs; read in the lobe's own frame over its `radii` (underside squashed by `under`); `cell` is the dab size in studs; blossoms [(petal, eye or None for a berry)] at blossom_rate; period > 0 repeats along X (a hedge)",
+   "status": "approved",
+   "options": {
+    "radii": "required",
+    "under": 0.7,
+    "cell": 2.0,
+    "period": 0.0,
+    "band": 0.22,
+    "base": "MeadowLeaf",
+    "light": "MeadowLeafLight",
+    "dark": "MeadowLeafDark",
+    "shade_name": "MeadowLeafShade",
+    "deep": "MeadowLeafDeep",
+    "sun": "MeadowLeafSun",
+    "gap": "MeadowLeafGap",
+    "flecks": 0.14,
+    "blossoms": null,
+    "blossom_rate": 0.0,
+    "seed": 0.0,
+    "ao_strength": 0.6
+   }
+  },
+  {
+   "key": "food.fruit_heap@1",
+   "id": "food.fruit_heap",
+   "version": 1,
+   "material": "produce",
+   "fixture": "fruit",
+   "tint": false,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon Greenmeadow, 2026-10-05 (MeadowFairBarrels apple barrel)",
+   "summary": "A heap of round fruit painted onto a mound: each texel takes the nearest of `centres` (object space, fruit of `radius` sitting on the mound), coloured per fruit (every third `alternate` if given), lit upper left, dark gaps where fruit meet, a stem dimple on each top",
+   "status": "approved",
+   "options": {
+    "centres": "required",
+    "radius": "required",
+    "base": "MeadowFairApple",
+    "light": "MeadowFairAppleLight",
+    "dark": "MeadowFairClayDark",
+    "alternate": null,
+    "seed": 0.0
+   }
+  },
+  {
+   "key": "food.goods@1",
+   "id": "food.goods",
+   "version": 1,
+   "material": "provisions",
+   "fixture": "dome",
+   "tint": false,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon Greenmeadow, 2026-10-05 (hub quartermaster's hams, garlic, onions, cheeses, loaves, apples, crocks)",
+   "summary": "Goods in three posterised tones of one colour family (base, light, dark names): hams, cheeses, onions, garlic, loaves, crocks; crease > 0 adds a crease pattern from low pointiness (a garlic bulb's cloves)",
+   "status": "approved",
+   "options": {
+    "base": "required",
+    "light": "required",
+    "dark": "required",
+    "seed": 0.0,
+    "crease": 0.0
+   }
+  },
+  {
+   "key": "food.gourd@1",
+   "id": "food.gourd",
+   "version": 1,
+   "material": "produce",
+   "fixture": "dome",
+   "tint": false,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon Greenmeadow, 2026-10-05 (MeadowFairStall pumpkins)",
+   "summary": "A ribbed pumpkin or gourd round object Z: dark grooves between `ribs` swollen lobes with a light crown, a sunken dark stem well on top, mottled skin",
+   "status": "approved",
+   "options": {
+    "ribs": 8,
+    "base": "MeadowFairPumpkin",
+    "light": "MeadowFairPumpkinLight",
+    "dark": "MeadowFairPumpkinDark",
+    "seed": 0.0
+   }
+  },
+  {
+   "key": "food.loaf@1",
+   "id": "food.loaf",
+   "version": 1,
+   "material": "bread",
+   "fixture": "dome",
+   "tint": false,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon Greenmeadow, 2026-10-05 (MeadowFairStall bakery)",
+   "summary": "A loaf: golden crust darkening to the top, paler sides, blisters, a floury underside (`flour`), slashes `scores` = [((x, y), angle, length)] in object space opened pale",
+   "status": "approved",
+   "options": {
+    "scores": [],
+    "seed": 0.0,
+    "flour": 0.35
+   }
+  },
+  {
+   "key": "food.produce@1",
+   "id": "food.produce",
+   "version": 1,
+   "material": "produce",
+   "fixture": "dome",
+   "tint": false,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon Greenmeadow, 2026-10-05 (MeadowFairStall and barrel apples, pears, carrots, cabbage stalks)",
+   "summary": "A piece of fruit or veg round its object origin (base, light, dark colour names): mottled skin, an optional sunny `blush` on the top, a dark stem dimple at the very top (stem=False for none)",
+   "status": "approved",
+   "options": {
+    "base": "required",
+    "light": "required",
+    "dark": "required",
+    "blush": null,
+    "seed": 0.0,
+    "stem": true
+   }
+  },
+  {
+   "key": "fur.coat_strokes@1",
+   "id": "fur.coat_strokes",
+   "version": 1,
+   "material": "fur",
+   "fixture": "dome",
+   "tint": false,
+   "styles": [
+    "painted-toon",
+    "soft-painted"
+   ],
+   "source": "Joust Tycoon starter set (Ashwood Lance, Padded Gambeson, Farm Rouncey), 2026-10-04",
+   "summary": "Animal coat: posterised patches, directional hair strokes along flow, optional belly lightening and dark leg points",
+   "status": "approved",
+   "options": {
+    "flow": [
+     0.0,
+     1.0,
+     -0.35
+    ],
+    "legs": false,
+    "belly": true,
+    "base": "Bay",
+    "light": "BayLight",
+    "dark": "BayDark"
+   }
+  },
+  {
+   "key": "fur.hair_strands@1",
+   "id": "fur.hair_strands",
+   "version": 1,
+   "material": "fur",
+   "fixture": "dome",
+   "tint": false,
+   "styles": [
+    "painted-toon",
+    "soft-painted"
+   ],
+   "source": "Joust Tycoon starter set (Ashwood Lance, Padded Gambeson, Farm Rouncey), 2026-10-04",
+   "summary": "Mane and tail strands along flow with a sheen on top",
+   "status": "approved",
+   "options": {
+    "flow": [
+     0.0,
+     0.0,
+     -1.0
+    ],
+    "base": "Points",
+    "light": "BayDark"
+   }
+  },
+  {
+   "key": "fur.trim@1",
+   "id": "fur.trim",
+   "version": 1,
+   "material": "fur",
+   "fixture": "ring",
+   "tint": true,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon Greenmeadow, 2026-10-05 (MeadowVillagers merchant's collar and hem)",
+   "summary": "Squirrel-grey fur trim on a collar or hem: soft clumped tufts, pale tips, dark roots; alpha 0, so it keeps its paint on a TintMask part",
+   "status": "approved",
+   "options": {
+    "seed": 0.0
+   }
+  },
+  {
+   "key": "leather.binding@1",
+   "id": "leather.binding",
+   "version": 1,
+   "material": "leather",
+   "fixture": "ring",
+   "tint": false,
+   "styles": [
+    "painted-toon",
+    "soft-painted"
+   ],
+   "source": "Joust Tycoon starter set (Ashwood Lance, Padded Gambeson, Farm Rouncey), 2026-10-04",
+   "summary": "Dark leather binding with a centre stitch line on a ring loft (centre height, pitch = perimeter)",
+   "status": "approved",
+   "options": {
+    "centre": "required",
+    "pitch": "required"
+   }
+  },
+  {
+   "key": "leather.saddle@1",
+   "id": "leather.saddle",
+   "version": 1,
+   "material": "leather",
+   "fixture": "box",
+   "tint": false,
+   "styles": [
+    "painted-toon",
+    "soft-painted"
+   ],
+   "source": "Joust Tycoon starter set (Ashwood Lance, Padded Gambeson, Farm Rouncey), 2026-10-04",
+   "summary": "Saddle leather with optional brass studs at points",
+   "status": "approved",
+   "options": {
+    "studs": []
+   }
+  },
+  {
+   "key": "leather.scuffed@1",
+   "id": "leather.scuffed",
+   "version": 1,
+   "material": "leather",
+   "fixture": "box",
+   "tint": false,
+   "styles": [
+    "painted-toon",
+    "soft-painted"
+   ],
+   "source": "Joust Tycoon starter set (Ashwood Lance, Padded Gambeson, Farm Rouncey), 2026-10-04",
+   "summary": "Scuffed leather in three tones",
+   "status": "approved",
+   "options": {
+    "base": "Leather",
+    "light": "LeatherLight",
+    "dark": "LeatherDark"
+   }
+  },
+  {
+   "key": "leather.stitched@1",
+   "id": "leather.stitched",
+   "version": 1,
+   "material": "leather",
+   "fixture": "ring",
+   "tint": false,
+   "styles": [
+    "painted-toon",
+    "soft-painted"
+   ],
+   "source": "Joust Tycoon starter set (Ashwood Lance, Padded Gambeson, Farm Rouncey), 2026-10-04",
+   "summary": "Leather with dashed stitch rows at given heights (rows, axis)",
+   "status": "approved",
+   "options": {
+    "rows": [],
+    "axis": 2,
+    "dash": 0.06,
+    "base": "Leather",
+    "light": "LeatherLight",
+    "dark": "LeatherDark"
+   }
+  },
+  {
+   "key": "leather.studded_strap@1",
+   "id": "leather.studded_strap",
+   "version": 1,
+   "material": "leather",
+   "fixture": "ring",
+   "tint": false,
+   "styles": [
+    "painted-toon",
+    "soft-painted"
+   ],
+   "source": "Joust Tycoon starter set (Ashwood Lance, Padded Gambeson, Farm Rouncey), 2026-10-04",
+   "summary": "Stitched strap with brass studs round a uniform ring loft (rows, studs height, count_around, perimeter)",
+   "status": "approved",
+   "options": {
+    "rows": "required",
+    "studs": "required",
+    "count_around": "required",
+    "perimeter": "required"
+   }
+  },
+  {
+   "key": "metal.gilt@1",
+   "id": "metal.gilt",
+   "version": 1,
+   "material": "gilt",
+   "fixture": "dome",
+   "tint": false,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon Greenmeadow, 2026-10-05 (fair finials, pole caps, lantern knobs; hub well)",
+   "summary": "Gilded turned wood (finials, knobs): the knights' embroidery gold, mottled with darker wear, warm rims; tinted=True returns alpha 0 so it stays gold on a TintMask part",
+   "status": "approved",
+   "options": {
+    "tinted": false
+   }
+  },
+  {
+   "key": "metal.iron@1",
+   "id": "metal.iron",
+   "version": 1,
+   "material": "metal",
+   "fixture": "box",
+   "tint": false,
+   "styles": [
+    "painted-toon",
+    "soft-painted"
+   ],
+   "source": "Joust Tycoon starter set (Ashwood Lance, Padded Gambeson, Farm Rouncey), 2026-10-04",
+   "summary": "Mottled forged metal with scratches and optional rust; pass base/light/dark for brass or steel",
+   "status": "approved",
+   "options": {
+    "base": "Iron",
+    "light": "IronLight",
+    "dark": "IronDark",
+    "rust": true
+   }
+  },
+  {
+   "key": "metal.riveted@1",
+   "id": "metal.riveted",
+   "version": 1,
+   "material": "metal",
+   "fixture": "points",
+   "tint": false,
+   "styles": [
+    "painted-toon",
+    "soft-painted"
+   ],
+   "source": "Joust Tycoon starter set (Ashwood Lance, Padded Gambeson, Farm Rouncey), 2026-10-04",
+   "summary": "Metal with rivet heads at given world points (centres, radius)",
+   "status": "approved",
+   "options": {
+    "centres": "required",
+    "radius": 0.035
+   }
+  },
+  {
+   "key": "plant.bulrush@1",
+   "id": "plant.bulrush",
+   "version": 1,
+   "material": "plant",
+   "fixture": "spindle",
+   "tint": false,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon Greenmeadow, 2026-10-05 (MeadowGroundCover reeds)",
+   "summary": "A bulrush head on its own frame (local z along it, `length`): velvet brown, a lighter top band, faint nap",
+   "status": "approved",
+   "options": {
+    "length": "required"
+   }
+  },
+  {
+   "key": "plant.clover_head@1",
+   "id": "plant.clover_head",
+   "version": 1,
+   "material": "flower",
+   "fixture": "dome",
+   "tint": false,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon Greenmeadow, 2026-10-05 (MeadowGroundCover clover)",
+   "summary": "A round head of florets (clover): posterised pink, paler floret tips, greener at the base underneath (rotation gives the piece's frame)",
+   "status": "approved",
+   "options": {
+    "rotation": null
+   }
+  },
+  {
+   "key": "plant.clover_leaf@1",
+   "id": "plant.clover_leaf",
+   "version": 1,
+   "material": "leaf",
+   "fixture": "pad",
+   "tint": false,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon Greenmeadow, 2026-10-05 (MeadowGroundCover clover)",
+   "summary": "A three-lobed clover leaf in its own frame (radius): leaf green with the pale chevron band of white clover, darker underside",
+   "status": "approved",
+   "options": {
+    "radius": "required",
+    "rotation": null
+   }
+  },
+  {
+   "key": "plant.fronds@1",
+   "id": "plant.fronds",
+   "version": 1,
+   "material": "greenery",
+   "fixture": "dome",
+   "tint": false,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon Greenmeadow, 2026-10-05 (MeadowFairStall carrot tops)",
+   "summary": "Feathery green fronds (carrot tops) streaked along object X, darker where they bunch at the crown (local x near 0)",
+   "status": "approved",
+   "options": {
+    "seed": 0.0
+   }
+  },
+  {
+   "key": "plant.garland@1",
+   "id": "plant.garland",
+   "version": 1,
+   "material": "greenery",
+   "fixture": "cylinder",
+   "tint": false,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon Greenmeadow, 2026-10-05 (hub well wreaths)",
+   "summary": "A festive garland of greenery: posterised leaf greens studded with poppy, buttercup, daisy and cornflower dots, wound with a cream ribbon round object `along_axis`",
+   "status": "approved",
+   "options": {
+    "along_axis": 2,
+    "seed": 0.0
+   }
+  },
+  {
+   "key": "plant.grass_blades@1",
+   "id": "plant.grass_blades",
+   "version": 1,
+   "material": "grass",
+   "fixture": "blades",
+   "tint": false,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon Greenmeadow, 2026-10-05 (MeadowGroundCover tufts and reeds)",
+   "summary": "Tall grass blades on a tuft's own frame (base at local z 0, `height` tall): cool dark root, grass green up the blade, a sunlit tip a step lighter than the terrain grass; lit as part of the sward",
+   "status": "approved",
+   "options": {
+    "height": "required",
+    "sun": 1.0,
+    "seed": 0.0
+   }
+  },
+  {
+   "key": "plant.leaf@1",
+   "id": "plant.leaf",
+   "version": 1,
+   "material": "leaf",
+   "fixture": "leaf",
+   "tint": false,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon Greenmeadow, 2026-10-05 (MeadowGroundCover basal leaves)",
+   "summary": "A lance leaf along its own +X from the origin (`length`): darker at the base, light toward the tip, a pale midrib and side veins, a darker underside",
+   "status": "approved",
+   "options": {
+    "length": "required",
+    "rotation": null
+   }
+  },
+  {
+   "key": "plant.lily_pad@1",
+   "id": "plant.lily_pad",
+   "version": 1,
+   "material": "plant",
+   "fixture": "pad",
+   "tint": false,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon castle (Rebirth 0), 2026-10-05 (moat banks)",
+   "summary": "A lily pad seen from above: green, lighter rim and radial veins from its object origin, dark underside",
+   "status": "approved",
+   "options": {}
+  },
+  {
+   "key": "plant.petals@1",
+   "id": "plant.petals",
+   "version": 1,
+   "material": "flower",
+   "fixture": "flower",
+   "tint": false,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon Greenmeadow, 2026-10-05 (MeadowGroundCover wildflowers)",
+   "summary": "A star-shaped flower head in its own frame (radius, petal_count; offset turns the petals): petals dark toward the eye and light at the tips, a vein down each petal, creases into the notches, an eye with a darker ring, green sepals and a paler back underneath; two-sided light; blush tints the tips",
+   "status": "approved",
+   "options": {
+    "base": "required",
+    "light": "required",
+    "dark": "required",
+    "eye": "required",
+    "eye_ring": "required",
+    "radius": "required",
+    "petal_count": "required",
+    "eye_size": 0.3,
+    "offset": 0.0,
+    "rotation": null,
+    "sepal": "MeadowFlowerSepal",
+    "vein": 0.35,
+    "blush": null
+   }
+  },
+  {
+   "key": "plant.reed@1",
+   "id": "plant.reed",
+   "version": 1,
+   "material": "plant",
+   "fixture": "blades",
+   "tint": false,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon castle (Rebirth 0), 2026-10-05 (moat banks)",
+   "summary": "Reed blades: dark at the waterline (base_z) to a pale tip over `height`, with lengthwise streaks",
+   "status": "approved",
+   "options": {
+    "base_z": "required",
+    "height": "required"
+   }
+  },
+  {
+   "key": "plant.seed_head@1",
+   "id": "plant.seed_head",
+   "version": 1,
+   "material": "grass",
+   "fixture": "spindle",
+   "tint": false,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon Greenmeadow, 2026-10-05 (MeadowGroundCover seeded tufts)",
+   "summary": "A ripe grass seed head: straw with darker husk lines",
+   "status": "approved",
+   "options": {}
+  },
+  {
+   "key": "plant.stem@1",
+   "id": "plant.stem",
+   "version": 1,
+   "material": "plant",
+   "fixture": "blades",
+   "tint": false,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon Greenmeadow, 2026-10-05 (MeadowGroundCover flower stems)",
+   "summary": "Flower stems: dark at the ground (base_z) to fresh green near the head (`top` studs up), a thin lengthwise streak, lit as part of the sward",
+   "status": "approved",
+   "options": {
+    "top": "required",
+    "base_z": 0.0,
+    "ao": 0.5
+   }
+  },
+  {
+   "key": "plant.toadstool_cap@1",
+   "id": "plant.toadstool_cap",
+   "version": 1,
+   "material": "fungus",
+   "fixture": "toadstool",
+   "tint": false,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon Greenmeadow, 2026-10-05 (MeadowGroundCover toadstools and fairy ring)",
+   "summary": "A toadstool cap in its own frame (radius): lighter crown, darker rim, pale spots at `spots` (points in the cap's frame, spot_size), cream gills underneath; fly agaric by default, base/light/dark recolour it",
+   "status": "approved",
+   "options": {
+    "radius": "required",
+    "spots": "required",
+    "rotation": null,
+    "spot_size": 0.075,
+    "base": "MeadowCoverToadstool",
+    "light": "MeadowCoverToadstoolLight",
+    "dark": "MeadowCoverToadstoolDark"
+   }
+  },
+  {
+   "key": "plant.toadstool_stalk@1",
+   "id": "plant.toadstool_stalk",
+   "version": 1,
+   "material": "fungus",
+   "fixture": "spindle",
+   "tint": false,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon Greenmeadow, 2026-10-05 (MeadowGroundCover toadstools)",
+   "summary": "A toadstool stalk on its own frame (`height` up local z): cream, shaded at the foot with an earthy base",
+   "status": "approved",
+   "options": {
+    "height": "required"
+   }
+  },
+  {
+   "key": "plant.turf@1",
+   "id": "plant.turf",
+   "version": 1,
+   "material": "grass",
+   "fixture": "bank",
+   "tint": false,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon castle (Rebirth 0), 2026-10-05 (moat banks)",
+   "summary": "A grassy bank lip on tiling noise: posterised turf with light tufts and blade flecks on top, bare earth where it turns down steeply; period, swap/along as stone.ashlar_tiled",
+   "status": "approved",
+   "options": {
+    "period": [
+     21.0,
+     0.0,
+     0.0
+    ],
+    "swap": false,
+    "along": 0.0
+   }
+  },
+  {
+   "key": "plant.wheat_ear@1",
+   "id": "plant.wheat_ear",
+   "version": 1,
+   "material": "crop",
+   "fixture": "spindle",
+   "tint": false,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon Greenmeadow, 2026-10-05 (MeadowWheat ears)",
+   "summary": "One modelled wheat ear (object Z along it, `length`): gold, darker toward the stalk, grain notches across it, a pale tip",
+   "status": "approved",
+   "options": {
+    "length": 0.9
+   }
+  },
+  {
+   "key": "plant.wheat_field@1",
+   "id": "plant.wheat_field",
+   "version": 1,
+   "material": "crop",
+   "fixture": "field",
+   "tint": false,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon Greenmeadow, 2026-10-05 (MeadowWheat tiles and edge fringe)",
+   "summary": "Standing wheat that repeats every `period` studs in X and Y: on top, rows along X `row_pitch` apart of slanted ear-head strokes in three golds, dark troughs, broad diagonal wind bands; on walls (a cut edge or fringe), stalk strokes darkening from `crest` to a green-brown `foot` under a band of ears; occlusion painted from height, never baked, so tiles always match",
+   "status": "approved",
+   "options": {
+    "period": 16.0,
+    "foot": -0.4,
+    "crest": 2.2,
+    "row_pitch": 1.3333333333333333
+   }
+  },
+  {
+   "key": "roof.courses@1",
+   "id": "roof.courses",
+   "version": 1,
+   "material": "roof tile",
+   "fixture": "roof",
+   "tint": false,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon Greenmeadow, 2026-10-05 (hub roofs: smithy slate, quartermaster clay tiles, well shingles)",
+   "summary": "Roof courses in a roof plane's own frame (local X along the eave, local Y up the slope): roof.fish_scale's scales at `tile` (u, v) studs; scallop 0.42 is a fish scale, near 0 a straight-cut slate or shingle; moss greens the lower courses, soot=((x, y, z), reach) darkens round a chimney, undersides take the shade tone",
+   "status": "approved",
+   "options": {
+    "tile": [
+     2.2,
+     1.5
+    ],
+    "scallop": 0.42,
+    "base": "MeadowHubClay",
+    "shade_name": "MeadowHubClayShade",
+    "gap": "MeadowHubClayGap",
+    "moss": 0.0,
+    "soot": null
+   }
+  },
+  {
+   "key": "roof.fish_scale@1",
+   "id": "roof.fish_scale",
+   "version": 1,
+   "material": "roof tile",
+   "fixture": "cone",
+   "tint": true,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon castle (Rebirth 0), 2026-10-05 (tower and gate-drum cone roofs, woodpile lean-to)",
+   "summary": "Fish-scale roof tiles, near-white for TintMask: rounded rims lit, overlap shaded, cool gaps; around=(x, y, radius) lays rows round a cone, None for a flat pitch; alpha 1, so the whole roof takes the team colour",
+   "status": "approved",
+   "options": {
+    "around": [
+     0.0,
+     0.0,
+     10.0
+    ],
+    "tile": [
+     2.2,
+     1.5
+    ],
+    "scallop": 0.42,
+    "base": "CastleTile",
+    "shade_name": "CastleTileShade",
+    "gap": "CastleTileGap"
+   }
+  },
+  {
+   "key": "roof.thatch@1",
+   "id": "roof.thatch",
+   "version": 1,
+   "material": "thatch",
+   "fixture": "roof",
+   "tint": false,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon Greenmeadow, 2026-10-05 (hub stable roof)",
+   "summary": "Long-straw thatch in a roof plane's own frame (local Y up the slope): fibre.hay strands combed down the slope in thatch golds, laid in courses whose butt ends show as a dark line under a lit lip every `course` studs, greying and greening in patches",
+   "status": "approved",
+   "options": {
+    "course": 1.05,
+    "strands": 11.0,
+    "seed": 0.0
+   }
+  },
+  {
+   "key": "stone.ashlar@1",
+   "id": "stone.ashlar",
+   "version": 1,
+   "material": "stone",
+   "fixture": "drum",
+   "tint": false,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon castle (Rebirth 0), 2026-10-05",
+   "summary": "Ashlar in running bond: per-block tones with warm/cool strays, painted bevel (lit lip, shaded foot), chips, cracks, moss from the ground and in crevices; around=(x, y, radius) lays courses round a drum, tops are square flags",
+   "status": "approved",
+   "options": {
+    "around": null,
+    "block": [
+     2.6,
+     1.3
+    ],
+    "mortar": 0.13,
+    "moss_below": 2.5,
+    "moss": 0.4,
+    "grime": 0.08,
+    "base": "CastleStone",
+    "light": "CastleStoneLight",
+    "dark": "CastleStoneDark",
+    "warm": "CastleStoneWarm",
+    "cool": "CastleStoneCool",
+    "joint": "CastleMortar",
+    "moss_colour": "CastleMoss",
+    "moss_dark": "CastleMossDark"
+   }
+  },
+  {
+   "key": "stone.ashlar_tiled@1",
+   "id": "stone.ashlar_tiled",
+   "version": 1,
+   "material": "stone",
+   "fixture": "wall",
+   "tint": false,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon castle (Rebirth 0), 2026-10-05 (moat retaining walls and coping)",
+   "summary": "stone.ashlar for straight runs that tile along X: block columns and every noise repeat each period[0] studs (block widths must divide it); shift moves the coursing, swap/along place a corner arm in its run's frame; moss below moss_below (a waterline)",
+   "status": "approved",
+   "options": {
+    "period": [
+     21.0,
+     0.0,
+     0.0
+    ],
+    "block": [
+     2.5,
+     0.65
+    ],
+    "flat_block": [
+     2.0,
+     2.0
+    ],
+    "shift": [
+     0.0,
+     0.0
+    ],
+    "mortar": 0.12,
+    "moss_below": -0.2,
+    "moss": 0.45,
+    "grime": 0.08,
+    "base": "CastleStone",
+    "light": "CastleStoneLight",
+    "dark": "CastleStoneDark",
+    "warm": "CastleStoneWarm",
+    "cool": "CastleStoneCool",
+    "joint": "CastleMortar",
+    "moss_colour": "CastleMoss",
+    "moss_dark": "CastleMossDark",
+    "swap": false,
+    "along": 0.0
+   }
+  },
+  {
+   "key": "stone.boulder@1",
+   "id": "stone.boulder",
+   "version": 1,
+   "material": "stone",
+   "fixture": "rock",
+   "tint": false,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon Greenmeadow, 2026-10-05 (MeadowGroundCover boulders and stones)",
+   "summary": "Field stone in its own frame: posterised tone patches with warm/cool strays, speckle, hairline cracks on the sides, ragged moss cushions on the tops, lee side and cracks, yellow and pale lichen rosettes on the flanks, earthy grime at the ground (z 0); scale shrinks the patterns for a small stone",
+   "status": "approved",
+   "options": {
+    "seed": 0.0,
+    "moss": 0.7,
+    "lichen": 0.6,
+    "cracks": 0.8,
+    "scale": 1.0
+   }
+  },
+  {
+   "key": "stone.coping_stone@1",
+   "id": "stone.coping_stone",
+   "version": 1,
+   "material": "stone",
+   "fixture": "box",
+   "tint": false,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon Greenmeadow, 2026-10-05 (MeadowStoneWall combers)",
+   "summary": "One upright coping stone (a comber) on a dry-stone wall's top: its own tone per `key`, chips, lichen, moss over its top; noise repeats every `period` along X like stone.dry_stone",
+   "status": "approved",
+   "options": {
+    "key": 0,
+    "period": 12.0,
+    "seed": 3,
+    "seams": []
+   }
+  },
+  {
+   "key": "stone.dry_stone@1",
+   "id": "stone.dry_stone",
+   "version": 1,
+   "material": "stone",
+   "fixture": "drywall",
+   "tint": false,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon Greenmeadow, 2026-10-05 (MeadowStoneWall segment and end)",
+   "summary": "Dry-stone walling along X from origin_x to origin_x + length: rough courses (`courses` tall from `foot`) of real-sized stones (0.6-1.8 long) with dark voids and no mortar, per-stone tone, pillowed faces, lichen, moss creeping from the top (`top`) and ground; courses close on both ends and noise repeats every `period`, so pieces tile; end faces lay stones across Y; lit the same from both sides (seams: hidden butt joints)",
+   "status": "approved",
+   "options": {
+    "origin_x": -6.0,
+    "length": 12.0,
+    "courses": [
+     0.72,
+     0.62,
+     0.55,
+     0.5,
+     0.45
+    ],
+    "foot": -0.3,
+    "top": 2.35,
+    "seed": 3,
+    "period": 12.0,
+    "seams": [
+     -6.0,
+     6.0
+    ],
+    "cheek_x": null
+   }
+  },
+  {
+   "key": "stone.paving@1",
+   "id": "stone.paving",
+   "version": 1,
+   "material": "stone",
+   "fixture": "plane",
+   "tint": false,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon castle (Rebirth 0), 2026-10-05 (courtyard paving, gatehouse threshold)",
+   "summary": "Flagstones for a square tile centred on the origin: courses along X of random-length real-sized flags (1.9-3.9 studs) closing on the tile edge, per-flag tone, painted raised edge, wear, chips, moss in the joints; repeats each tile in X and Y",
+   "status": "approved",
+   "options": {
+    "tile": 18.9,
+    "rows": 8,
+    "mortar": 0.11,
+    "seed": 5,
+    "moss": 0.4
+   }
+  },
+  {
+   "key": "stone.slit@1",
+   "id": "stone.slit",
+   "version": 1,
+   "material": "stone",
+   "fixture": "box",
+   "tint": false,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon castle (Rebirth 0), 2026-10-05",
+   "summary": "The flat dark of an arrow slit or window recess (no light, almost no edge)",
+   "status": "approved",
+   "options": {}
+  },
+  {
+   "key": "terrain.ground@1",
+   "id": "terrain.ground",
+   "version": 1,
+   "material": "earth",
+   "fixture": "tile",
+   "tint": false,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon Greenmeadow, 2026-10-05 (Greenmeadow terrain MaterialVariants)",
+   "summary": "Tileable bare ground seen from above, for a 1024 Terrain MaterialVariant (paint a Tile(period)): three-tone posterised mottling, dark grit, flat oval pebbles with a lit top and hard shadow, optional strewn straw, wet sheen or moss sprigs; palette names base, light, dark, deep, pebble, pebble_light, pebble_dark (+ straw, straw_dark, straw_light, sheen, moss, moss_dark when used)",
+   "status": "approved",
+   "options": {
+    "palette": "{'base': 'MeadowPath', 'light': 'MeadowPathLight', 'dark': 'MeadowPathDark', 'deep': 'MeadowEarthDark', 'pebble': 'MeadowStone', 'pebble_light': 'MeadowStoneLight', 'pebble_dark': 'MeadowStoneDark'}",
+    "seed": 0,
+    "pebbles": 0.6,
+    "grit": 0.5,
+    "straw": 0.0,
+    "sheen": 0.0,
+    "moss": 0.0
+   }
+  },
+  {
+   "key": "terrain.turf@1",
+   "id": "terrain.turf",
+   "version": 1,
+   "material": "grass",
+   "fixture": "tile",
+   "tint": false,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon Greenmeadow, 2026-10-05 (Greenmeadow terrain MaterialVariants)",
+   "summary": "Tileable grass seen from above, for a 1024 Terrain MaterialVariant (paint a Tile(period)): a dark cool undergrowth under thousands of tapered blades leaning one way, root dark to tip light, toned by broad posterised patches, each with a hard cool shadow down-light; `earth` lets bare earth show (trodden ground); palette names base, light, dark, sun, cool, earth, earth_dark",
+   "status": "approved",
+   "options": {
+    "palette": "{'base': 'MeadowGrass', 'light': 'MeadowGrassLight', 'dark': 'MeadowGrassDark', 'sun': 'MeadowGrassSun', 'cool': 'MeadowGrassCool', 'earth': 'MeadowEarth', 'earth_dark': 'MeadowEarthDark'}",
+    "seed": 0,
+    "density": 1.0,
+    "blade_length": 0.75,
+    "blade_width": 0.2,
+    "earth": 0.0,
+    "sun": 0.12,
+    "lean": 0.6
+   }
+  },
+  {
+   "key": "water.still@1",
+   "id": "water.still",
+   "version": 1,
+   "material": "water",
+   "fixture": "basin",
+   "tint": false,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon Greenmeadow, 2026-10-05 (hub quench barrel, trough and well)",
+   "summary": "Still water seen at an angle in a vessel (barrel, trough, well): dark posterised water, a lit rim band toward the vessel wall (object-space radius over the piece's widest), a sooty sheen",
+   "status": "approved",
+   "options": {}
+  },
+  {
+   "key": "water.toon@1",
+   "id": "water.toon",
+   "version": 1,
+   "material": "water",
+   "fixture": "pool",
+   "tint": false,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon castle (Rebirth 0), 2026-10-05 (moat runs and corners)",
+   "summary": "Toon water on noise that tiles every period: posterised depth bands, crisp ripple lines (ripple_lines), AO contact foam round anything standing in it (contact), and with banks(pos) -> studs a wobbling foam band plus a broken second line at the bank; mapping(pos) bends the pattern",
+   "status": "approved",
+   "options": {
+    "period": [
+     21.0,
+     0.0,
+     0.0
+    ],
+    "banks": null,
+    "foam_ao": 0.45,
+    "mapping": null,
+    "ripple_lines": true,
+    "contact": true
+   }
+  },
+  {
+   "key": "wood.ash_grain@1",
+   "id": "wood.ash_grain",
+   "version": 1,
+   "material": "wood",
+   "fixture": "cylinder",
+   "tint": false,
+   "styles": [
+    "painted-toon",
+    "soft-painted"
+   ],
+   "source": "Joust Tycoon starter set (Ashwood Lance, Padded Gambeson, Farm Rouncey), 2026-10-04",
+   "summary": "Ash-like wood: grain streaks round an axis (axis=0/1/2), posterised patches, knots, optional grime",
+   "status": "approved",
+   "options": {
+    "axis": 2,
+    "base": "Ash",
+    "light": "AshLight",
+    "dark": "AshDark",
+    "grain": "AshGrain",
+    "knots": true,
+    "grime": null,
+    "streaks": 7.0
+   }
+  },
+  {
+   "key": "wood.chalk_board@1",
+   "id": "wood.chalk_board",
+   "version": 1,
+   "material": "painted wood",
+   "fixture": "board",
+   "tint": false,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon Greenmeadow, 2026-10-05 (hub quartermaster's price board)",
+   "summary": "A shop's chalk price board (object X across, Z up; `half` = (x, z) of its face): dark slate-green board in a pine frame `frame` wide, chalked with `rows` rows of illegible scribbled prices, a loaf and coin doodled at the head, chalk smears",
+   "status": "approved",
+   "options": {
+    "half": "required",
+    "frame": 0.18,
+    "rows": 5,
+    "seed": 0.0
+   }
+  },
+  {
+   "key": "wood.chopping_block@1",
+   "id": "wood.chopping_block",
+   "version": 1,
+   "material": "wood",
+   "fixture": "stump",
+   "tint": false,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon castle (Rebirth 0), 2026-10-05 (woodpile)",
+   "summary": "A chopping block standing on object Z from 0 to `top`: wood.firewood bark round the side, end grain on top scored by axe cuts (list of ((x, y), angle))",
+   "status": "approved",
+   "options": {
+    "wood_bark_radius": 0.7,
+    "top": 1.2,
+    "cuts": []
+   }
+  },
+  {
+   "key": "wood.firewood@1",
+   "id": "wood.firewood",
+   "version": 1,
+   "material": "wood",
+   "fixture": "log",
+   "tint": false,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon castle (Rebirth 0), 2026-10-05 (woodpile)",
+   "summary": "Split firewood along object `axis` with the pith on it: dark fissured bark (mossy) on the round faces, pale fibrous split faces, end grain with growth rings and checks on the cut ends",
+   "status": "approved",
+   "options": {
+    "rotation": null,
+    "axis": 0,
+    "radius": 0.35,
+    "seed": 0.0
+   }
+  },
+  {
+   "key": "wood.sign_panel@1",
+   "id": "wood.sign_panel",
+   "version": 1,
+   "material": "painted wood",
+   "fixture": "board",
+   "tint": false,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon Greenmeadow, 2026-10-05 (MeadowSignpost name board)",
+   "summary": "The painted face of a sign board (object X across, Z up, facing -Y; half_width x half_height about centre_z): flat paint in broad brush strokes, a thin gold line `border` in from the edge, weathered chips showing timber near the rim, plain timber on the edges; the middle stays quiet so lettering laid over it reads",
+   "status": "approved",
+   "options": {
+    "half_width": "required",
+    "half_height": "required",
+    "centre_z": "required",
+    "border": 0.12
+   }
+  },
+  {
+   "key": "wood.weatherboard@1",
+   "id": "wood.weatherboard",
+   "version": 1,
+   "material": "wood",
+   "fixture": "drum",
+   "tint": false,
+   "styles": [
+    "painted-toon"
+   ],
+   "source": "Joust Tycoon Greenmeadow, 2026-10-05 (MeadowWindmill tower)",
+   "summary": "Lapped weatherboarding round a vertical axis through `centre`: boards boards[1] tall counted from z = boards[0], grain running round, a dark lap shadow under each board, staggered butt joints, weathered patches; measured round at `radius` with noise that repeats once round (no seam)",
+   "status": "approved",
+   "options": {
+    "centre": [
+     0.0,
+     0.0
+    ],
+    "radius": 4.6,
+    "boards": [
+     18.0,
+     0.55
+    ],
+    "seed": 3.0
+   }
+  }
+ ],
+ "styles": {
+  "painted-toon": {
+   "name": "painted-toon",
+   "title": "Painted Toon",
+   "summary": "Hand-painted textures pushed into cel shading: saturated colour in flat posterised tones, a hard cool shadow band under every form and a highlight band on top, from a mostly top-down light so the bands read from any heading. Pair with inklib outlines (0.05 studs) and cartoon geometry eyes on animals.",
+   "from": "Joust Tycoon, 2026-10-04 (art direction F; the starter set Ashwood Lance, Padded Gambeson, Farm Rouncey)",
+   "status": "approved for Joust Tycoon",
+   "finish": {
+    "toon": true,
+    "saturation": 1.3,
+    "poster_step": 0.09,
+    "poster": 0.65,
+    "shadow": "5B4A8C"
+   },
+   "ink": {
+    "thickness": 0.05,
+    "min_size": 0.32
+   },
+   "palette": {},
+   "painters": {
+    "wood": {
+     "brush": "wood.ash_grain@1"
+    },
+    "metal": {
+     "brush": "metal.iron@1"
+    },
+    "brass": {
+     "brush": "metal.iron@1",
+     "options": {
+      "base": "Brass",
+      "light": "BrassLight",
+      "dark": "Leather",
+      "rust": false
+     }
+    },
+    "rivets": {
+     "brush": "metal.riveted@1"
+    },
+    "leather": {
+     "brush": "leather.scuffed@1"
+    },
+    "dark leather": {
+     "brush": "leather.scuffed@1",
+     "options": {
+      "base": "LeatherDark",
+      "light": "Leather",
+      "dark": "LeatherDark"
+     }
+    },
+    "stitched leather": {
+     "brush": "leather.stitched@1"
+    },
+    "studded strap": {
+     "brush": "leather.studded_strap@1"
+    },
+    "binding": {
+     "brush": "leather.binding@1"
+    },
+    "saddle": {
+     "brush": "leather.saddle@1"
+    },
+    "team cloth": {
+     "brush": "cloth.team_plain@1"
+    },
+    "quilted cloth": {
+     "brush": "cloth.quilt_channels@1"
+    },
+    "quilted sleeve": {
+     "brush": "cloth.quilt_bands@1"
+    },
+    "placket": {
+     "brush": "cloth.placket@1"
+    },
+    "patch": {
+     "brush": "cloth.patch@1"
+    },
+    "embroidered band": {
+     "brush": "cloth.embroidered_band@1"
+    },
+    "embroidered tail": {
+     "brush": "cloth.embroidered_tail@1"
+    },
+    "gathered cloth": {
+     "brush": "cloth.gathered@1"
+    },
+    "coat": {
+     "brush": "fur.coat_strokes@1"
+    },
+    "hair": {
+     "brush": "fur.hair_strands@1"
+    },
+    "stone.castle": {
+     "brush": "stone.ashlar@1"
+    },
+    "stone.castle tiled": {
+     "brush": "stone.ashlar_tiled@1"
+    },
+    "arrow slit": {
+     "brush": "stone.slit@1"
+    },
+    "paving": {
+     "brush": "stone.paving@1"
+    },
+    "roof tiles": {
+     "brush": "roof.fish_scale@1"
+    },
+    "heraldic banner": {
+     "brush": "cloth.heraldic_banner@1"
+    },
+    "dagged valance": {
+     "brush": "cloth.dagged_valance@1"
+    },
+    "toon water": {
+     "brush": "water.toon@1"
+    },
+    "turf": {
+     "brush": "plant.turf@1"
+    },
+    "reeds": {
+     "brush": "plant.reed@1"
+    },
+    "lily pad": {
+     "brush": "plant.lily_pad@1"
+    },
+    "straw": {
+     "brush": "fibre.hay@1"
+    },
+    "hay bale": {
+     "brush": "fibre.hay_bale@1"
+    },
+    "burlap": {
+     "brush": "fibre.burlap@1"
+    },
+    "rope": {
+     "brush": "fibre.rope@1"
+    },
+    "rope coil": {
+     "brush": "fibre.rope_coil@1"
+    },
+    "firewood": {
+     "brush": "wood.firewood@1"
+    },
+    "chopping block": {
+     "brush": "wood.chopping_block@1"
+    },
+    "leaf mass": {
+     "brush": "foliage.leaf_dabs@1"
+    },
+    "leaf mass.bush": {
+     "brush": "foliage.leaf_dabs@1",
+     "options": {
+      "cell": 1.25,
+      "band": 0.1
+     }
+    },
+    "leaf mass.hedge": {
+     "brush": "foliage.leaf_dabs@1",
+     "options": {
+      "cell": 1.3,
+      "band": 0.05
+     }
+    },
+    "leaf mass.poplar": {
+     "brush": "foliage.leaf_dabs@1",
+     "options": {
+      "cell": 1.5,
+      "band": -0.05,
+      "base": "MeadowLeafPoplar",
+      "light": "MeadowLeafPoplarLight",
+      "dark": "MeadowLeafPoplarDark",
+      "flecks": 0.08
+     }
+    },
+    "flowering bush": {
+     "brush": "foliage.leaf_dabs@1",
+     "options": {
+      "cell": 1.25,
+      "band": 0.1,
+      "blossoms": [
+       [
+        "MeadowFoliageRose",
+        "MeadowButtercup"
+       ],
+       [
+        "MeadowDaisy",
+        "MeadowDaisyEye"
+       ]
+      ],
+      "blossom_rate": 0.5
+     }
+    },
+    "bark": {
+     "brush": "foliage.bark@1"
+    },
+    "bark.poplar": {
+     "brush": "foliage.bark@1",
+     "options": {
+      "fissures": 8.0,
+      "pitch": 0.6,
+      "base": "MeadowFoliagePoplarBark",
+      "light": "MeadowFoliagePoplarBarkLight",
+      "dark": "MeadowFoliagePoplarBarkDark",
+      "moss_below": 1.0,
+      "seed": 3.0
+     }
+    },
+    "wildflower petals": {
+     "brush": "plant.petals@1",
+     "options": {
+      "base": "MeadowPoppy",
+      "light": "MeadowFlowerPoppyLight",
+      "dark": "MeadowFlowerPoppyDark",
+      "eye": "MeadowFlowerPod",
+      "eye_ring": "MeadowFlowerPoppyEye",
+      "eye_size": 0.3,
+      "vein": 0.25
+     }
+    },
+    "wildflower petals.buttercup": {
+     "brush": "plant.petals@1",
+     "options": {
+      "base": "MeadowButtercup",
+      "light": "MeadowFlowerButtercupLight",
+      "dark": "MeadowFlowerButtercupDark",
+      "eye": "MeadowFlowerPod",
+      "eye_ring": "MeadowFlowerButtercupDark",
+      "eye_size": 0.25,
+      "vein": 0.4
+     }
+    },
+    "wildflower petals.daisy": {
+     "brush": "plant.petals@1",
+     "options": {
+      "base": "MeadowDaisy",
+      "light": "MeadowDaisy",
+      "dark": "MeadowFlowerDaisyShade",
+      "eye": "MeadowDaisyEye",
+      "eye_ring": "MeadowFlowerDaisyEyeDark",
+      "eye_size": 0.33,
+      "vein": 0.0,
+      "blush": "MeadowFlowerDaisyBlush"
+     }
+    },
+    "wildflower petals.cornflower": {
+     "brush": "plant.petals@1",
+     "options": {
+      "base": "MeadowCornflower",
+      "light": "MeadowFlowerCornflowerLight",
+      "dark": "MeadowFlowerCornflowerDark",
+      "eye": "MeadowFlowerCornflowerEye",
+      "eye_ring": "MeadowFlowerCornflowerDark",
+      "eye_size": 0.3,
+      "vein": 0.3
+     }
+    },
+    "clover head": {
+     "brush": "plant.clover_head@1"
+    },
+    "clover leaf": {
+     "brush": "plant.clover_leaf@1"
+    },
+    "flower stem": {
+     "brush": "plant.stem@1"
+    },
+    "basal leaf": {
+     "brush": "plant.leaf@1"
+    },
+    "grass blades": {
+     "brush": "plant.grass_blades@1"
+    },
+    "seed head": {
+     "brush": "plant.seed_head@1"
+    },
+    "bulrush": {
+     "brush": "plant.bulrush@1"
+    },
+    "toadstool cap": {
+     "brush": "plant.toadstool_cap@1"
+    },
+    "toadstool stalk": {
+     "brush": "plant.toadstool_stalk@1"
+    },
+    "boulder": {
+     "brush": "stone.boulder@1"
+    },
+    "dry stone": {
+     "brush": "stone.dry_stone@1"
+    },
+    "coping stone": {
+     "brush": "stone.coping_stone@1"
+    },
+    "thatch rick": {
+     "brush": "fibre.rick@1"
+    },
+    "round thatch": {
+     "brush": "fibre.rick@1",
+     "options": {
+      "eave": -100.0,
+      "seed": 8.0
+     }
+    },
+    "wheat sheaf": {
+     "brush": "fibre.sheaf@1"
+    },
+    "wheat field": {
+     "brush": "plant.wheat_field@1"
+    },
+    "wheat ear": {
+     "brush": "plant.wheat_ear@1"
+    },
+    "sail canvas": {
+     "brush": "cloth.sail_canvas@1"
+    },
+    "weatherboard": {
+     "brush": "wood.weatherboard@1"
+    },
+    "sign panel": {
+     "brush": "wood.sign_panel@1"
+    },
+    "stripe canvas": {
+     "brush": "cloth.stripe_canvas@1"
+    },
+    "bunting pennant": {
+     "brush": "cloth.pennant@1"
+    },
+    "festive bunting": {
+     "brush": "cloth.pennant@1",
+     "options": {
+      "festive": true
+     }
+    },
+    "laid rope": {
+     "brush": "fibre.laid_rope@1"
+    },
+    "gilt": {
+     "brush": "metal.gilt@1"
+    },
+    "wicker": {
+     "brush": "fibre.wicker@1"
+    },
+    "produce": {
+     "brush": "food.produce@1",
+     "options": {
+      "base": "MeadowFairApple",
+      "light": "MeadowFairAppleLight",
+      "dark": "MeadowFairClayDark",
+      "blush": "MeadowFairAppleLight"
+     }
+    },
+    "produce.pear": {
+     "brush": "food.produce@1",
+     "options": {
+      "base": "MeadowFairPear",
+      "light": "MeadowFairPearLight",
+      "dark": "MeadowFairPearDark",
+      "blush": "MeadowFairAppleGreen"
+     }
+    },
+    "fruit heap": {
+     "brush": "food.fruit_heap@1",
+     "options": {
+      "alternate": "MeadowFairAppleGreen"
+     }
+    },
+    "gourd": {
+     "brush": "food.gourd@1"
+    },
+    "loaf": {
+     "brush": "food.loaf@1"
+    },
+    "carrot tops": {
+     "brush": "plant.fronds@1"
+    },
+    "cloth bolt": {
+     "brush": "cloth.bolt@1",
+     "options": {
+      "dye": "MeadowFairMadder"
+     }
+    },
+    "roof courses": {
+     "brush": "roof.courses@1",
+     "options": {
+      "tile": [
+       1.9,
+       1.3
+      ],
+      "moss": 0.3
+     }
+    },
+    "roof courses.slate": {
+     "brush": "roof.courses@1",
+     "options": {
+      "tile": [
+       1.5,
+       0.95
+      ],
+      "scallop": 0.1,
+      "base": "MeadowHubSlate",
+      "shade_name": "MeadowHubSlateShade",
+      "gap": "MeadowHubSlateGap",
+      "moss": 0.25
+     }
+    },
+    "roof courses.shingle": {
+     "brush": "roof.courses@1",
+     "options": {
+      "tile": [
+       0.9,
+       0.62
+      ],
+      "scallop": 0.06,
+      "base": "MeadowHubShingle",
+      "shade_name": "MeadowHubShingleShade",
+      "gap": "MeadowHubShingleGap",
+      "moss": 0.35
+     }
+    },
+    "thatch roof": {
+     "brush": "roof.thatch@1"
+    },
+    "chalk board": {
+     "brush": "wood.chalk_board@1"
+    },
+    "provisions": {
+     "brush": "food.goods@1",
+     "options": {
+      "base": "MeadowHubHam",
+      "light": "MeadowHubHamLight",
+      "dark": "MeadowHubHamRind"
+     }
+    },
+    "provisions.cheese": {
+     "brush": "food.goods@1",
+     "options": {
+      "base": "MeadowHubCheese",
+      "light": "MeadowHubCheese",
+      "dark": "MeadowHubCheeseRind"
+     }
+    },
+    "garland": {
+     "brush": "plant.garland@1"
+    },
+    "flame": {
+     "brush": "fire.flame@1"
+    },
+    "embers": {
+     "brush": "fire.embers@1"
+    },
+    "still water": {
+     "brush": "water.still@1"
+    },
+    "homespun": {
+     "brush": "cloth.homespun@1"
+    },
+    "linen": {
+     "brush": "cloth.linen@1"
+    },
+    "motley": {
+     "brush": "cloth.motley@1"
+    },
+    "plaited straw": {
+     "brush": "fibre.plaited_straw@1"
+    },
+    "fur trim": {
+     "brush": "fur.trim@1"
+    },
+    "tileable turf": {
+     "brush": "terrain.turf@1",
+     "options": {
+      "seed": 11
+     }
+    },
+    "tileable turf.warm": {
+     "brush": "terrain.turf@1",
+     "options": {
+      "palette": {
+       "base": "MeadowTerrainGrassWarm",
+       "light": "MeadowTerrainGrassWarmLight",
+       "dark": "MeadowTerrainGrassWarmDark",
+       "sun": "MeadowGrassSun",
+       "cool": "MeadowGrassCool",
+       "earth": "MeadowEarth",
+       "earth_dark": "MeadowEarthDark"
+      },
+      "seed": 23,
+      "blade_length": 0.85,
+      "lean": 0.75,
+      "sun": 0.18
+     }
+    },
+    "tileable turf.trodden": {
+     "brush": "terrain.turf@1",
+     "options": {
+      "palette": {
+       "base": "MeadowTerrainTrodden",
+       "light": "MeadowTerrainTroddenLight",
+       "dark": "MeadowTerrainTroddenDark",
+       "sun": "MeadowStraw",
+       "cool": "MeadowGrassDark",
+       "earth": "MeadowPathDark",
+       "earth_dark": "MeadowEarth"
+      },
+      "seed": 37,
+      "density": 0.9,
+      "blade_length": 0.55,
+      "blade_width": 0.17,
+      "earth": 0.12,
+      "sun": 0.1,
+      "lean": 1.1
+     }
+    },
+    "tileable earth": {
+     "brush": "terrain.ground@1",
+     "options": {
+      "seed": 41,
+      "pebbles": 0.7,
+      "grit": 0.45
+     }
+    },
+    "tileable earth.straw": {
+     "brush": "terrain.ground@1",
+     "options": {
+      "palette": {
+       "base": "MeadowTerrainStrawDirt",
+       "light": "MeadowPathLight",
+       "dark": "MeadowPathDark",
+       "deep": "MeadowEarthDark",
+       "pebble": "MeadowStone",
+       "pebble_light": "MeadowStoneLight",
+       "pebble_dark": "MeadowStoneDark",
+       "straw": "MeadowStraw",
+       "straw_dark": "MeadowStrawDark",
+       "straw_light": "MeadowPathLight"
+      },
+      "seed": 53,
+      "pebbles": 0.35,
+      "grit": 0.3,
+      "straw": 1.0
+     }
+    },
+    "tileable earth.bank": {
+     "brush": "terrain.ground@1",
+     "options": {
+      "palette": {
+       "base": "MeadowEarth",
+       "light": "MeadowTerrainEarthSheen",
+       "dark": "MeadowEarthDark",
+       "deep": "MeadowEarthDark",
+       "pebble": "MeadowStoneDark",
+       "pebble_light": "MeadowStone",
+       "pebble_dark": "MeadowEarthDark",
+       "sheen": "MeadowTerrainEarthSheen",
+       "moss": "MeadowMoss",
+       "moss_dark": "MeadowGrassCool"
+      },
+      "seed": 67,
+      "pebbles": 0.5,
+      "grit": 0.35,
+      "sheen": 0.4,
+      "moss": 0.35
+     }
+    }
+   }
+  },
+  "soft-painted": {
+   "name": "soft-painted",
+   "title": "Soft Painted",
+   "summary": "The soft hand-painted look: the same recipes as painted-toon with no toon pass, a gentle key light, warm tops, cool undersides, ambient occlusion and warm convex edges. Reads like Command an Army's custom-textured units; no outlines.",
+   "from": "Joust Tycoon, 2026-10-04 (art direction A, before the user chose F)",
+   "status": "explored, not adopted by a game",
+   "finish": {
+    "toon": false
+   },
+   "ink": null,
+   "palette": {},
+   "painters": {
+    "wood": {
+     "brush": "wood.ash_grain@1"
+    },
+    "metal": {
+     "brush": "metal.iron@1"
+    },
+    "brass": {
+     "brush": "metal.iron@1",
+     "options": {
+      "base": "Brass",
+      "light": "BrassLight",
+      "dark": "Leather",
+      "rust": false
+     }
+    },
+    "rivets": {
+     "brush": "metal.riveted@1"
+    },
+    "leather": {
+     "brush": "leather.scuffed@1"
+    },
+    "dark leather": {
+     "brush": "leather.scuffed@1",
+     "options": {
+      "base": "LeatherDark",
+      "light": "Leather",
+      "dark": "LeatherDark"
+     }
+    },
+    "stitched leather": {
+     "brush": "leather.stitched@1"
+    },
+    "studded strap": {
+     "brush": "leather.studded_strap@1"
+    },
+    "binding": {
+     "brush": "leather.binding@1"
+    },
+    "saddle": {
+     "brush": "leather.saddle@1"
+    },
+    "team cloth": {
+     "brush": "cloth.team_plain@1"
+    },
+    "quilted cloth": {
+     "brush": "cloth.quilt_channels@1"
+    },
+    "quilted sleeve": {
+     "brush": "cloth.quilt_bands@1"
+    },
+    "placket": {
+     "brush": "cloth.placket@1"
+    },
+    "patch": {
+     "brush": "cloth.patch@1"
+    },
+    "embroidered band": {
+     "brush": "cloth.embroidered_band@1"
+    },
+    "embroidered tail": {
+     "brush": "cloth.embroidered_tail@1"
+    },
+    "gathered cloth": {
+     "brush": "cloth.gathered@1"
+    },
+    "coat": {
+     "brush": "fur.coat_strokes@1"
+    },
+    "hair": {
+     "brush": "fur.hair_strands@1"
+    }
+   }
+  }
+ }
+}
