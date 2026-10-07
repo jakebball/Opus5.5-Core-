@@ -74,6 +74,10 @@ Requests*, then in Claude Code run `/setup MyGame` (details in `baseplate/README
 
 ## What `/setup` gives every project
 
+A new project is **copied from a template, not written**: `scaffold.js` creates every file below in about a second,
+with the hard rules read straight from the standard. `/setup` then asks only what needs a person (the pitch, the look,
+the animation feel, which Studio place), every answer optional; anything skipped stays **Unset** until the work needs it.
+
 | Layer | What lands in the project | Why |
 | --- | --- | --- |
 | **Docs skeleton** | `index.md` (pitch, doc index, status), `tech-design.md` (architecture + Hard Rules), `updatelog.md`, `features/` | Every session orients from two files instead of re-reading the codebase; docs are written only after the user approves a change |

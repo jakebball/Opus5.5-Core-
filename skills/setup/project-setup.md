@@ -6,13 +6,13 @@ This document defines how all projects under `<projects>/` are set up and manage
 
 ## Prerequisites (once per machine)
 
-The standard leans on a small toolchain. `/setup` checks it on every new project and names what is missing.
+The standard leans on a small toolchain. The installer checks it once per machine and names what is missing; a `/setup` audit re-checks it.
 
 | Tool | Why | Check |
 | --- | --- | --- |
 | Claude Code | runs the skills | `claude --version` |
 | Roblox Studio + the Studio MCP plugin ([boshyxd/robloxstudio-mcp](https://github.com/boshyxd/robloxstudio-mcp)), with the MCP server added to Claude Code as `robloxstudio` | every Studio read and write, and the HTTP bridge (`127.0.0.1:58741-58750/mcp`) the Node tools call | `node ~/.claude/skills/studio/sync.js probe` |
-| Blender 4.1+ | `/blenderassets` builds, `/assetshot` and `/itemicon` renders (headless, no window) | the smoke build in step 6 |
+| Blender 4.1+ | `/blenderassets` builds, `/assetshot` and `/itemicon` renders (headless, no window) | the installer's smoke build |
 | Node 18+ | every skill script (global `fetch`, no npm packages) | `node --version` |
 | ffmpeg | `/demo` records and encodes feature videos (`winget install Gyan.FFmpeg`) | `node ~/.claude/skills/demo/demo.js check` |
 | git | the project history, and `game-source/` diffs | `git --version` |
@@ -107,6 +107,8 @@ Every new project's `tech-design.md` MUST:
 5. Declare headless Blender as the 3D asset pipeline (`blender-source/`, built with `/blenderassets`), per **3D Asset Pipeline** below.
 6. Point every new asset at the project's art style through the seeded **Every new visual asset follows the project art style** rule, per **Art Style** below.
 
+The template's `tech-design.md` (§ The Project Template) already does all six.
+
 ## 3D Asset Pipeline — headless Blender
 
 **Every Roblox project authors its new 3D mesh assets in headless Blender**, through the `/blenderassets` skill
@@ -144,7 +146,7 @@ headless Blender**, below) carries the obligations into each project, and this s
    `world-source/`), generator scripts, a `ServerStorage.ModelKit` in the place. Report what you find and offer the
    choice: adopt Blender for new assets (seed the hard rule, create `blender-source/`), or record the existing
    pipeline in `tech-design.md` as the project's rule.
-4. Run the toolchain smoke build (Setup Checklist, **Set Up the 3D Asset Pipeline**) and report the Blender version
+4. Run the toolchain smoke build (`node ~/.claude/skills/blenderassets/blend.js build ~/.claude/skills/blenderassets/examples/pumpkin_crate.py --out <scratchpad>\PumpkinCrate`, as the installer does) and report the Blender version
    it used, or what is missing.
 
 ## Art Style
@@ -337,29 +339,44 @@ Every project must have the following at its root:
 └── ...               # Project-specific files (map-source/, animation-source/, configs)
 ```
 
-## Setup Checklist (New Project)
+## The Project Template
 
-When setting up a new project, complete these steps in order:
+A new project is **copied, not written**. `/setup` runs `node ~/.claude/skills/setup/scaffold.js new <Name>`,
+which copies `template/roblox/` (or `template/generic/` for a project that is not a Roblox game) into the projects
+folder in about a second and fills in the name, the date and, when the place is open in Studio, the place id. Nothing
+in it is retyped by Claude, so it is fast, cheap and identical in every project.
 
-### 1. Create the Project Directory
-- Create a folder in `<projects>/` with the project name, and `git init` it
-- Check the **Prerequisites** table above and report anything missing (the Blender check is the smoke build in step 6)
+A Roblox project gets:
 
-### 2. Create `index.md`
-- Title: project name
-- Brief description (1-2 sentences) of what the project is
-- Table or list of all documentation files with one-line descriptions
-- Keep this updated as docs are added
+```
+<Name>/
+├── index.md                    # pitch (Unset until given), place, status, doc index, reading order, open items
+├── tech-design.md              # inherited framework, naming, networking, persistence, and every seeded Hard Rule
+├── updatelog.md                # the setup entry
+├── features/art-direction.md   # ## Project Art Style, Unset until the user describes the look
+├── features/animation-style.md # Unset until the user describes the feel
+├── blender-source/style.py     # PALETTE = {}
+├── ui-source/renders/          # for /itemicon
+├── demo-source/                # for /demo
+├── studio.json, game-source/   # once a place is linked (scaffold.js link)
+└── .gitignore, .gitattributes  # git init is run
+```
 
-### 3. Create `tech-design.md`
-- **Architecture overview**: How the project is structured (folders, entry points, frameworks). For Roblox projects, default to the **Default Roblox Boilerplate** above — reference the Runner framework + AdminSystem + asset layout that ships in every baseplate. Do not redocument what's already framework-default; note only what differs or what game-specific components live under `Components/<GameName>/`.
-- **Naming conventions**: Casing rules for variables, functions, modules, constants
-- **Hard rules**: Anything that must always or never be done (e.g., "no require() for injected modules", "use os.time() not tick()")
-- **Networking / data flow**: How client-server communication works (if applicable)
-- **Data persistence**: How data is saved/loaded (if applicable)
-- **Change Summaries**: a closing section pointing at `~/.claude/skills/setup/change-summary.md` (see **Change Summaries** below). Paste the pointer block verbatim — do not restate the rule at length or copy the doc into the project.
+- **The Hard Rules are inserted at copy time** from § Seeded Hard Rules below, together with the Change Summaries
+  pointer block, so the template can never drift from this document: change a rule here and every new project gets it.
+- **What the template leaves Unset** (the pitch, the core loop, the art style, the animation style) is exactly what
+  needs a person. Each Unset section says when it must be settled: the art style before the first asset, the animation
+  style before the first animation.
+- **Added as the work reaches them**, from `~/.claude/skills/setup/templates/`: `features/economy.md` (§ Economy Design Doc)
+  and `tools/balance-sim.js` when the game gets a currency or progression; `features/ui-instances.md` and
+  `features/ui-backlog.md` with the first UI (§ UI Pipeline); a `CONTRACTS.md` when a pass is split across
+  sub-agents (§ Parallel Builds).
+- **The machine** (Blender, ffmpeg, Node, the Studio MCP) is checked once by the installer, not per project.
 
-Seed every new project's `tech-design.md` with these standard rules (paste verbatim into the Hard Rules section):
+## Seeded Hard Rules
+
+Every Roblox project's `tech-design.md` § Hard Rules starts with these 33 rules, inserted verbatim by `scaffold.js`.
+A project adds its own below them, and never deletes a seeded one without the user's say-so.
 
 - **Reuse existing components** — before connecting raw input events (`InputBegan`, `Activated`, etc.) on an instance, check if it already has a component (e.g., `Button`). Use that component's API (e.g., `triggeredEvent`) instead. If the component isn't attached yet, use `EntityStore.addComponent()`. More broadly, before writing any logic check whether a generic, Gui, game-specific, or `Shared/` module already does it and reuse that instead of a bespoke reimplementation — drive timed escalating offers through `ProductLadder` (don't hand-roll a step/timer ladder), open and close panels through the `Frame` component's `:open()` / `:close()` (don't tween `.Visible`), resolve assets through the `Assets` module, format numbers through the shared number util (don't write a local formatter). If the existing module is close but insufficient, extend it rather than forking a private copy.
 - **Check tags before touching behavior** — before modifying any instance's behavior (setting `.Visible`, writing a property, wiring an event), inspect its CollectionService tags (`instance:GetTags()` or Studio's Tag view). If an existing component owns that surface (e.g., `Frame` wraps `.Visible` with a tweened open/close, `Button` wraps `.Activated` with debounced `triggeredEvent`), go through its API instead of the raw property. Raw writes silently break the component's invariants (lost animation, stale state) and create drift between places that do vs. don't go through the component.
@@ -400,70 +417,24 @@ Seed every new project's `tech-design.md` with these standard rules (paste verba
 
 **Keep this seed in sync with shipped projects.** When a project adds a new hard rule to its own `tech-design.md`, add it to this seed list too (and vice-versa) so every future project inherits it — the seed and the per-project tech-design hard-rule sets must not drift. The `/deslopify` skill enforces a subset of these rules against existing code; when this list grows, extend that skill's checks to match. (That covers Luau rules only: the 3D asset, art style, animation style and asset check rules are checked by the `/setup` audit, not by `/deslopify`, and so are template tags, which the audit reads from the live place.)
 
-### 4. Create `updatelog.md`
-- Empty file with just the project title header
-- Entries will be appended as work is done (see Update Log Format below)
+## Setup Checklist (New Project)
 
-### 5. Create `features/` Directory
-- Add one MD file per major feature or system
-- Each file should describe: purpose, how it works, key implementation details, interactions with other systems
+1. **Scaffold.** Ask the user for anything they want to give now, in one message, every answer optional: the pitch in
+   a sentence or two, what the game should look like, how animation should feel, and whether its place is open in
+   Studio (`node ~/.claude/skills/setup/scaffold.js places` lists the open places; never guess which one). Then run
+   `node ~/.claude/skills/setup/scaffold.js new <Name> --dir <projects folder> [--pitch "<their words>"] [--place-id <id>]`.
+2. **Fill only what was answered.** The look goes into `## Project Art Style` per § Art Style (offer the brush
+   library's style profiles if the game will be painted, and seed `style.py` from the chosen profile's palette); the
+   feel goes into `features/animation-style.md` per § Animation Style, in the user's own words. Unanswered sections
+   stay **Unset**; never invent a style the user did not describe.
+3. **Link the place** when it exists: `scaffold.js new --place-id` does it at once, or later, from the project folder,
+   `node ~/.claude/skills/setup/scaffold.js link --place-id <id>`. Linking writes `studio.json`, pulls every script into
+   `game-source/` and records the place in `index.md`. Then read the live Runner and record any difference from
+   § Default Roblox Boilerplate in `tech-design.md` § Differences from the baseplate.
+4. **Register** the project: its update log path in the "Known project update logs" list in `CLAUDE.md`, and a memory
+   entry (doc index path, update log path, the key decisions, any gotcha).
 
-### 6. Set Up the 3D Asset Pipeline (Roblox projects)
-- Create `blender-source/` in the project root (see **3D Asset Pipeline**). The Blender hard rule reaches
-  `tech-design.md` with the rest of the seed in step 3.
-- Smoke-test the toolchain on this machine, writing to the session scratchpad:
-  `node ~/.claude/skills/blenderassets/blend.js build ~/.claude/skills/blenderassets/examples/pumpkin_crate.py --out <scratchpad>\PumpkinCrate`.
-  It must print `built PumpkinCrate` with no `warn` or `error` lines. Report the Blender version it names. A
-  missing or pre-4.1 Blender fails here, at setup, instead of in the middle of the first asset; finish the rest of
-  the setup, keep the rule, and tell the user what to install.
-- Nothing goes into the place: `MeshKit` travels with each push.
-- Asset checks: the **Assets are checked offline, never through Studio's camera** rule reaches `tech-design.md` with
-  the rest of the seed in step 3. `/assetshot` renders with the same Blender the smoke build found, so nothing else is
-  installed. Its first real use needs the place open with the Studio MCP connected.
-
-### 7. Set the Art Style (Roblox projects)
-- Ask the user what the game should look like, then write `## Project Art Style` at the top of
-  `features/art-direction.md` per **Art Style**: from their words, from a short proposal they approve, or as
-  `**Unset.**` if they want to decide later.
-- Create `blender-source/style.py` holding the palette as named sRGB hex strings (`PALETTE = {}` while the style is
-  unset), and name it in the section as the palette's source of truth.
-- List `features/art-direction.md` in `index.md`. The art style rule reaches `tech-design.md` with the rest of the
-  seed in step 3.
-
-### 8. Set the Animation Style
-- Ask the user how animation should feel and where the flair goes, then write `features/animation-style.md` per
-  **Animation Style**: from their words, from FPSTowerDefense's guide as a starting point they edit and approve, or
-  as `**Unset.**` if they want to decide later.
-- List `features/animation-style.md` in `index.md`. The animation style rule reaches `tech-design.md` with the rest of
-  the seed in step 3.
-
-### 9. Put the Code on Disk (Roblox projects, once the place exists)
-- With the place open in Studio and the MCP plugin connected: `node ~/.claude/skills/studio/sync.js init`
-  in the project root (writes `studio.json` with the place's `placeId`, `game-source/`, `.gitattributes`,
-  `.gitignore`), then `sync.js pull`. Record the place id in `index.md`.
-- Read the live Runner while you are there (component lists, `getConfig` children, the UI folder name, anything in
-  `Disabled/`) and record every difference from **Default Roblox Boilerplate** in `tech-design.md`. Fix the two
-  known baseplate bugs (**Turning boilerplate off, and known boilerplate bugs**) on disk and push them.
-- Note in `tech-design.md` § 1 that `game-source/` is the copy to edit, and which tools generate scripts (those are
-  regenerated, never hand-edited).
-- No place yet: skip this step and say so; the first session with a place runs it.
-
-### 10. Seed the Templates (as the work reaches them)
-- Economy: when the economy doc is written, copy `~/.claude/skills/setup/templates/balance-sim.js` to
-  `tools/balance-sim.js` and model the core loop in it, so every pacing number in the doc has a sim behind it.
-- UI: create `ui-source/renders/` now; add `features/ui-instances.md` and `features/ui-backlog.md` from the templates
-  when the first UI is built (**UI Pipeline**).
-- Parallel builds: `templates/CONTRACTS.md` when a pass is split across sub-agents (**Parallel Builds**).
-
-### 11. Register in Memory
-- Add the project to `MEMORY.md` with:
-  - Documentation index path
-  - Update log path
-  - Key conventions (brief)
-  - Any critical gotchas
-
-### 12. Register in CLAUDE.md
-- Add the project's update log path to the "Known project update logs" list in `CLAUDE.md`
+That is the whole setup. Everything else is written when the work reaches it.
 
 ## Documentation Waits for Approval
 

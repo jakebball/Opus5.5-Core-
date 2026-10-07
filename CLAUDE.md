@@ -9,7 +9,7 @@ chain. `README.md` is the user-facing pitch and install guide; this file is for 
 | Path | What it is | Edited how |
 | --- | --- | --- |
 | `skills/<name>/` | The 15 Claude Code skills the installer copies into `~/.claude/skills/` | **Generated.** Edit the maintainer's live install, then `node maintainer/export.js` |
-| `skills/setup/project-setup.md`, `change-summary.md`, `examples/animation-style.md`, `templates/` | The standard `/setup` enforces, the change-summary rule, the worked animation guide, the templates | Generated with the skills, from the maintainer's standards folder |
+| `skills/setup/project-setup.md`, `change-summary.md`, `examples/animation-style.md`, `template/`, `templates/`, `scaffold.js` | The standard `/setup` enforces, the change-summary rule, the worked animation guide, the new-project template (copied by `scaffold.js`), the on-demand doc templates | Generated with the skills, from the maintainer's standards folder |
 | `claude/CLAUDE.md` | The team rules block the installer writes into each user's `~/.claude/CLAUDE.md` | By hand. `<projects>` is replaced at install time |
 | `claude/personas/*.md` | Opt-in voices (`-Persona jarvis`) prepended to that block | By hand |
 | `claude/settings.example.json` | A permissions allowlist and denylist users may merge | By hand |
@@ -112,14 +112,18 @@ every call in `bridge.onceLua`.
 
 ## 5. The skills
 
-### `/setup` (instructions only)
-`SKILL.md` drives Claude through `project-setup.md`: prerequisites, the docs skeleton (`index.md`, `tech-design.md` with
-the 33 seeded Hard Rules pasted verbatim, `updatelog.md`, `features/`), the art style (`features/art-direction.md`
-§ Project Art Style, palette in `blender-source/style.py`, optional brush style profile), the animation style, the
-Blender smoke build, code on disk (`studio/sync.js init` + `pull`), the economy doc and `tools/balance-sim.js`, the
-templates, and registration in memory and `CLAUDE.md`. On an existing project it audits instead, including the live
-place. **The seed list in `project-setup.md` § 3 and every project's `tech-design.md` must not drift**, and `/deslopify`
-enforces the Luau subset of it, so a new Luau rule is added in all three.
+### `/setup` (`scaffold.js` + instructions)
+New projects are **copied, not written**. `scaffold.js new <Name> [--dir] [--kind roblox|generic] [--pitch] [--place-id]`
+copies `skills/setup/template/<kind>/` and fills `{{NAME}}`, `{{NAME_ID}}`, `{{DATE}}`, `{{PITCH}}`, `{{PLACE_LINE}}`, and for
+Roblox `{{RULES}}` / `{{RULE_COUNT}}` / `{{CHANGE_SUMMARY}}`, which it reads **at copy time** from
+`project-setup.md` § Seeded Hard Rules (the bullets before "Keep this seed in sync") and the Change Summaries pointer
+block, so the template cannot drift from the standard. It refuses a non-empty target, runs `git init`, and with
+`--place-id` calls `link`: writes `studio.json`, runs `studio/sync.js pull`, and rewrites the `- **Place:**` line of
+`index.md`. `places` lists open Studio places (bridge probe); `rules` lists the seeded rule names (the audit diffs a
+project against it). `SKILL.md` then asks only what needs a person (pitch, look, animation feel, which place; all
+optional), fills only the answered sections, and registers the project. Audit mode reads the whole standard and checks
+docs and the live place. **To change what every new project gets:** edit `template/` or the standard's § Seeded Hard
+Rules, never a generated project. A new Luau rule also goes into `/deslopify` § 2d.
 
 ### `/studio` (`bridge.js`, `sync.js`, `run.js`)
 - `sync.js` finds the project by walking up to `studio.json` (`placeId`, `gameSource`, optional `roots`, `steps`,

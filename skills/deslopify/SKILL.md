@@ -126,7 +126,7 @@ Flag: `SetAttribute` / `GetAttribute` / `GetAttributeChangedSignal` used as a cr
 
 ## 2d. Seeded architecture rules (report only)
 
-The seed list in `project-setup.md` § 3 grew on 2026-10-06 with rules learned in other games. Most are design rules no
+The seed list in `project-setup.md` § Seeded Hard Rules grew on 2026-10-06 with rules learned in other games. Most are design rules no
 grep can prove, so this category **only reports** sites for the user to judge, one line each with `path:line` and the
 rule; it never rewrites. Check only the rules the project's `tech-design.md` actually carries.
 
