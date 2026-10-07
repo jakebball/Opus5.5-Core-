@@ -124,6 +124,23 @@ Flag: `SetAttribute` / `GetAttribute` / `GetAttributeChangedSignal` used as a cr
 
 **Carve-out (going-forward rule):** server-wide state that is *identical for every player* and has no behavior may use a single replicated Configuration attribute — one value replicated once per client beats a per-player CR mirror there. **Do not refactor a project's existing attribute-based replication** unless the user asks; respect the legacy exceptions its `tech-design.md` lists (e.g. a per-player `DiceCount` render attribute, a `Board` tile-index mirror). This rule governs *new* code and flags *candidates* for later migration — present them as a list, don't auto-rewrite shipped paths.
 
+## 2d. Seeded architecture rules (report only)
+
+The seed list in `project-setup.md` § 3 grew on 2026-10-06 with rules learned in other games. Most are design rules no
+grep can prove, so this category **only reports** sites for the user to judge, one line each with `path:line` and the
+rule; it never rewrites. Check only the rules the project's `tech-design.md` actually carries.
+
+| Rule | Signal to look for |
+| --- | --- |
+| One loop per system, never one per entity | `Heartbeat:Connect` / `RenderStepped:Connect` / `task.spawn` loops / `while task.wait` inside a component's `new` for a component that has many instances |
+| A Robux grant never saves the profile | a function registered as a `Commerce` grant handler that calls a profile save (`:Save(`, `EndSession`, `modifyProfileData` followed by a save) |
+| Session state never touches the profile | round/run/match components that call `getProfileData` or write profile fields |
+| The client reports intent, never outcomes | client → server remotes whose arguments name results (`won`, `amount`, `reward`, `hit`, item or crop ids) rather than inputs |
+| Numbers live in config | numeric literals for prices, rates, durations or odds inside `Components/` (not 0, 1, maths constants or layout) |
+| High-rate messages leave batched | `sendNetworkEvent` / `FireClient` inside a per-item loop |
+| One writer per shared surface | writes to `Lighting.*`, `workspace.GlobalWind`, `Terrain.Clouds` or a `SoundGroup.Volume` from more than one component |
+| Never leave a component tag on a template | not a code check: the `/setup` audit reads it from the live place |
+
 ---
 
 ## Reporting & logging

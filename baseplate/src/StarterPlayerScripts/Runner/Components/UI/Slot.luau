@@ -66,6 +66,9 @@ function Slot:_initialize()
 	local contentFrame = Slot.getInstance(self.instance, "ContentFrame")
 	self._viewportFrame = contentFrame:FindFirstChild("ViewportFrame")
 	if self._viewportFrame then
+		if not Slot.EntityStore.findComponent(self._viewportFrame, "ModelViewport") then
+			Slot.EntityStore.addComponent(self._viewportFrame, "ModelViewport")
+		end
 		Slot.EntityStore.promiseGetComponent(self._viewportFrame, "ModelViewport"):andThen(function(mv)
 			if self._destroyed then return end
 			self._modelViewport = mv

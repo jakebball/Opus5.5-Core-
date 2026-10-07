@@ -193,4 +193,4 @@ function takeFlag(argv, name, hasValue = true) {
   return value;
 }
 
-module.exports = { PORTS, longString, rawCall, once, probe, resolve, deferred, findProjectRoot, readConfig, takeFlag };
+module.exports = { PORTS, longString, onceLua, rawCall, once, probe, resolve, deferred, findProjectRoot, readConfig, takeFlag };

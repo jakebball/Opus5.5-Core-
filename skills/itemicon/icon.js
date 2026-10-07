@@ -6,6 +6,13 @@
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
+const studioBridge = (() => {
+  try {
+    return require(path.join(__dirname, "..", "studio", "bridge.js"));
+  } catch {
+    return null;
+  }
+})();
 const zlib = require("zlib");
 const { spawnSync } = require("child_process");
 
@@ -30,7 +37,8 @@ Each target renders on its own to DIR/<Name>.png: transparent, square, tightly f
   --attribute NAME     with --upload, also set the rbxassetid as this attribute on the source model (default
                        IconImage; "none" to skip), so code finds an item's icon on its own template
   --manifest FILE      merge { name: { assetId, file, source } } into this JSON file
-  --port N             Studio MCP port (default 58741 or STUDIO_PORT)
+  --port N             Studio MCP port (default: found by /studio's bridge, else 58741 or STUDIO_PORT)
+  --place-id ID        only use a Studio with this place open (default: the project's studio.json)
   --samples N          Cycles samples (default 48)
   --force              render and upload again even when the manifest already has the icon (otherwise skipped,
                        so a run cut off by the bridge resumes where it stopped)`;
@@ -60,6 +68,7 @@ function parse(argv) {
       case "--upload": options.upload = true; break;
       case "--manifest": options.manifest = path.resolve(value()); break;
       case "--port": options.port = Number(value()); break;
+      case "--place-id": options.placeId = value(); break;
       case "--samples": options.samples = Number(value()); break;
       case "--force": options.force = true; break;
       case "--attribute": options.attribute = value(); break;
@@ -237,7 +246,9 @@ async function main(argv) {
     console.log(USAGE);
     return;
   }
-  const port = options.port || Number(process.env.STUDIO_PORT) || 58741;
+  const fixedPort = options.port || (process.env.STUDIO_PORT ? Number(process.env.STUDIO_PORT) : undefined);
+  const placeId = studioBridge ? options.placeId || studioBridge.readConfig(studioBridge.findProjectRoot()).placeId : options.placeId;
+  const port = studioBridge ? (await studioBridge.resolve({ port: fixedPort, placeId, writes: Boolean(options.upload) })).port : fixedPort || 58741;
   fs.mkdirSync(options.outDir, { recursive: true });
   const scratch = fs.mkdtempSync(path.join(os.tmpdir(), "itemicon-"));
   const manifest = options.manifest && fs.existsSync(options.manifest) ? JSON.parse(fs.readFileSync(options.manifest, "utf8")) : {};

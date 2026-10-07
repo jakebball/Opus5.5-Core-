@@ -25,6 +25,13 @@ const { spawnSync } = require("child_process");
 const RUNNER = path.join(__dirname, "python", "run.py");
 const MESHKIT = path.join(__dirname, "..", "importmeshtools", "vendor", "robloxMeshTools", "kit", "MeshKit.luau");
 const PORTS = Array.from({ length: 10 }, (_, index) => 58741 + index);
+const studioBridge = (() => {
+  try {
+    return require(path.join(__dirname, "..", "studio", "bridge.js"));
+  } catch {
+    return null;
+  }
+})();
 const MIN_BLENDER = [4, 1];
 
 function parseArgs(argv) {
@@ -871,10 +878,12 @@ function readPayload(file) {
   return payload;
 }
 
-function needPort(args) {
+async function needPort(args) {
   const port = Number(args.port);
-  if (!port) throw new Error("--port N is required (run `probe` first)");
-  return port;
+  if (port) return port;
+  if (!studioBridge) throw new Error("--port N is required (run `probe` first)");
+  const placeId = args["place-id"] !== undefined && args["place-id"] !== true ? args["place-id"] : studioBridge.readConfig(studioBridge.findProjectRoot()).placeId;
+  return (await studioBridge.resolve({ placeId })).port;
 }
 
 function parseAt(value) {
@@ -901,7 +910,7 @@ async function probe() {
 
 async function selftest(args) {
   const payload = readPayload(args._[1]);
-  const port = needPort(args);
+  const port = await needPort(args);
   if (payload.format === "blendlib-textured/1") throw new Error("selftest checks vertex-colour payloads; push a painted payload as a preview instead (it verifies every part and texture)");
   const report = await callJson(port, selftestLua(payload));
   console.log(`selftest (unparented, nothing kept): ${report.ok ? "OK" : "FAILED"} in ${report.seconds.toFixed(2)} s`);
@@ -915,7 +924,7 @@ async function selftest(args) {
 
 async function push(args) {
   const payload = readPayload(args._[1]);
-  const port = needPort(args);
+  const port = await needPort(args);
   if (args["place-id"] === undefined || args["place-id"] === true) throw new Error("--place-id ID is required, so an asset never lands in another open place");
   const place = JSON.parse((await call(port, PROBE, 8000)).returnValue);
   if (String(place.placeId) !== String(args["place-id"])) throw new Error(`port ${port} has placeId ${place.placeId} ("${place.name}") open, not ${args["place-id"]}; refusing`);

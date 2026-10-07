@@ -205,7 +205,16 @@ return game:GetService("HttpService"):JSONEncode({
 })
 `;
 
+const studioBridge = (() => {
+  try {
+    return require(path.join(__dirname, "..", "studio", "bridge.js"));
+  } catch {
+    return null;
+  }
+})();
+
 async function call(port, code, timeoutMs = 120000) {
+  if (studioBridge) code = studioBridge.onceLua(code);
   const res = await fetch(`http://127.0.0.1:${port}/mcp`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Accept: "application/json, text/event-stream" },
@@ -233,10 +242,12 @@ async function probePort(port) {
   return JSON.parse(r.returnValue);
 }
 
-function needPort(args) {
+async function needPort(args) {
   const port = Number(args.port);
-  if (!port) throw new Error("--port N is required (run `probe` first)");
-  return port;
+  if (port) return port;
+  if (!studioBridge) throw new Error("--port N is required (run `probe` first)");
+  const placeId = args["place-id"] || studioBridge.readConfig(studioBridge.findProjectRoot()).placeId;
+  return (await studioBridge.resolve({ placeId })).port;
 }
 
 function printReport(label, json) {
@@ -283,7 +294,7 @@ async function main() {
   }
 
   if (cmd === "run") {
-    const port = needPort(args);
+    const port = await needPort(args);
     if (typeof args.file !== "string") throw new Error("--file piece.luau is required");
     const code = fs.readFileSync(args.file, "utf8");
     const r = await call(port, code, Number(args.timeout) || 300000);
@@ -293,7 +304,7 @@ async function main() {
   }
 
   const files = selected(groupsFrom(args));
-  const port = needPort(args);
+  const port = await needPort(args);
 
   if (cmd === "selftest") {
     const r = await call(port, installerLua(files, { root, sandbox: true }));

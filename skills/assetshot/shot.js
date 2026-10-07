@@ -13,6 +13,21 @@ const MESH_CACHE = path.join(CACHE_DIR, "meshes");
 const IMAGE_LIMIT = 1024;
 const imageCacheDir = (limit) => path.join(CACHE_DIR, `images-${limit}`);
 const DEFAULT_PORT = Number(process.env.STUDIO_PORT || 58741);
+const studioBridge = (() => {
+  try {
+    return require(path.join(__dirname, "..", "studio", "bridge.js"));
+  } catch {
+    return null;
+  }
+})();
+
+async function pickPort(options) {
+  const fixed = options.port || (process.env.STUDIO_PORT ? Number(process.env.STUDIO_PORT) : undefined);
+  if (!studioBridge) return fixed || DEFAULT_PORT;
+  const placeId = options.placeId || studioBridge.readConfig(studioBridge.findProjectRoot()).placeId;
+  return (await studioBridge.resolve({ port: fixed, placeId })).port;
+}
+
 const VIEWS = ["persp", "persp-back", "persp-right", "persp-back-right", "front", "back", "left", "right", "top", "bottom"];
 const FORWARDS = ["-z", "+z", "-x", "+x"];
 const DEFAULT_POSE = `local options = { label = ARGS.label, views = ARGS.views, focus = ARGS.focus, forward = ARGS.forward }
@@ -52,7 +67,8 @@ Renders Studio instances offline in headless Blender. Studio's camera is never t
   --icon-file PATH     write the icon here (one target only; default <out>/<label>.png)
   --image-limit N      largest texture side read from Studio (default ${IMAGE_LIMIT}); bigger textures are averaged down
   --name NAME          folder and sheet name
-  --port N             Studio MCP port (default ${DEFAULT_PORT}, or STUDIO_PORT)
+  --port N             Studio MCP port (default: found by /studio's bridge, else ${DEFAULT_PORT} or STUDIO_PORT)
+  --place-id ID        only use a Studio with this place open (default: the project's studio.json)
   --blender PATH       Blender 4.1+ (default: newest under Program Files\\Blender Foundation, or BLENDER)
   --keep               keep scene.json and the preview textures beside the sheet`;
 
@@ -104,6 +120,7 @@ function parse(argv) {
       case "image-limit": options.imageLimit = Number(value()); break;
       case "name": options.name = value(); break;
       case "port": options.port = Number(value()); break;
+      case "place-id": options.placeId = value(); break;
       case "blender": options.blender = value(); break;
       case "keep": options.keep = true; break;
       case "help": options.help = true; break;
@@ -420,7 +437,7 @@ async function main(argv, log = console.log) {
     return null;
   }
   if (!options.targets.length && !options.pose) throw new Error(`give at least one instance path, or --pose\n\n${USAGE}`);
-  const port = options.port || DEFAULT_PORT;
+  const port = await pickPort(options);
   const name = slug(options.name || (options.targets[0] ? options.targets[0].split(".").pop() : path.basename(options.pose, path.extname(options.pose))));
   const outDir = path.resolve(options.out || path.join(os.tmpdir(), "assetshot", `${name}-${Date.now().toString(36)}`));
   fs.mkdirSync(outDir, { recursive: true });

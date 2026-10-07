@@ -63,6 +63,15 @@ for fromPath, toPath in spec.moveChildren or {} do
 		from:Destroy()
 	end
 end
+local stripped = 0
+if spec.stripTags then
+	for _, descendant in copy:GetDescendants() do
+		for _, tag in descendant:GetTags() do
+			descendant:RemoveTag(tag)
+			stripped += 1
+		end
+	end
+end
 for _, name in spec.ensureFolders or {} do
 	if not copy:FindFirstChild(name) then
 		local folder = Instance.new("Folder")
@@ -75,7 +84,7 @@ local encoded = buffer.tostring(game:GetService("EncodingService"):Base64Encode(
 copy:Destroy()
 _G.BaseplateExtract = _G.BaseplateExtract or {}
 _G.BaseplateExtract[${index}] = encoded
-return HttpService:JSONEncode({ length = #encoded, removed = removed, missing = missing })`;
+return HttpService:JSONEncode({ length = #encoded, removed = removed, missing = missing, strippedTags = stripped })`;
 }
 
 async function extract() {
@@ -95,7 +104,7 @@ async function extract() {
     const bytes = Buffer.from(encoded, "base64");
     const file = path.join(EXTRACT, `${take.out}.rbxm`);
     fs.writeFileSync(file, bytes);
-    console.log(`${take.out}: ${(bytes.length / 1024).toFixed(0)} KB, stripped ${report.removed.length}${report.missing.length ? `, not found: ${report.missing.join(", ")}` : ""}`);
+    console.log(`${take.out}: ${(bytes.length / 1024).toFixed(0)} KB, stripped ${report.removed.length}${report.strippedTags ? `, ${report.strippedTags} template tags removed` : ""}${report.missing.length ? `, not found: ${report.missing.join(", ")}` : ""}`);
   }
 }
 

@@ -101,17 +101,20 @@ Bridge behaviour every tool must survive:
 - **Wrong place.** Check `game.PlaceId` before writing; refuse while `RunService:IsRunning()` (a playtest).
 - **Embedding text.** Use a Lua long bracket with a free `=` level; JSON-escaped Windows paths break Lua escapes.
 
-`skills/studio/bridge.js` is the shared implementation (`resolve`, `once`, `deferred`, `probe`, `longString`,
-`findProjectRoot`, `readConfig`). New tools must require it. Older tools carry their own copies: `blend.js`
-(`onceLua` + `_G.BlendCalls`, needs `--port` and `--place-id`), `assetshot/shot.js` (start-once job and polling,
-`STUDIO_PORT` or 58741, no place check), `itemicon/icon.js` (`_G.ItemIconCalls`, retries, no place check),
-`importmeshtools/meshtools.js` (no token guard). Migrating them to `bridge.js` is open work.
+`skills/studio/bridge.js` is the shared implementation (`resolve`, `once`, `onceLua`, `deferred`, `probe`,
+`longString`, `findProjectRoot`, `readConfig`). New tools must require it. The four older tools load it as
+`studioBridge` (from `../studio/bridge.js`, falling back to their old behaviour if `/studio` is missing) for **port
+discovery and the place check**: with no `--port` they call `resolve` with `--place-id` or the project's `studio.json`
+`placeId`. They keep their own proven call paths: `blend.js` its `onceLua` + `_G.BlendCalls` guard (push still requires
+`--place-id`), `assetshot/shot.js` its start-once job and polling, `itemicon/icon.js` its `_G.ItemIconCalls` guard and
+retries (and `resolve({ writes: true })` refuses a playtest when uploading), `importmeshtools/meshtools.js` now wraps
+every call in `bridge.onceLua`.
 
 ## 5. The skills
 
 ### `/setup` (instructions only)
 `SKILL.md` drives Claude through `project-setup.md`: prerequisites, the docs skeleton (`index.md`, `tech-design.md` with
-the 19 seeded Hard Rules pasted verbatim, `updatelog.md`, `features/`), the art style (`features/art-direction.md`
+the 33 seeded Hard Rules pasted verbatim, `updatelog.md`, `features/`), the art style (`features/art-direction.md`
 § Project Art Style, palette in `blender-source/style.py`, optional brush style profile), the animation style, the
 Blender smoke build, code on disk (`studio/sync.js init` + `pull`), the economy doc and `tools/balance-sim.js`, the
 templates, and registration in memory and `CLAUDE.md`. On an existing project it audits instead, including the live
@@ -244,8 +247,6 @@ Hard Rule sweeps).
 
 ## 9. Known gaps
 
-- Older tools do not use `bridge.js`: `assetshot` and `itemicon` have no place-id guard; `meshtools.js` has no
-  repeat-delivery guard.
 - `/makegui` still says `Components/Gui` and mentions an MCP `list_roblox_studios` tool; the baseplate uses `Components/UI`.
 - `/create-devproduct` and `/create-gamepass` patch `Monetization` with `set_script_source`; in a project with
   `game-source/` they should edit disk and `sync.js push`.

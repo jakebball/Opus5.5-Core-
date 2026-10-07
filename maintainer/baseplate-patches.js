@@ -68,4 +68,15 @@ return {
       return out;
     },
   },
+  {
+    name: "Slot attaches ModelViewport itself, so the HotbarItem template carries no component tag",
+    file: "StarterPlayerScripts/Runner/Components/UI/Slot.luau",
+    apply: (text) =>
+      replaceOnce(
+        text,
+        '\tif self._viewportFrame then\n\t\tSlot.EntityStore.promiseGetComponent(self._viewportFrame, "ModelViewport")',
+        '\tif self._viewportFrame then\n\t\tif not Slot.EntityStore.findComponent(self._viewportFrame, "ModelViewport") then\n\t\t\tSlot.EntityStore.addComponent(self._viewportFrame, "ModelViewport")\n\t\tend\n\t\tSlot.EntityStore.promiseGetComponent(self._viewportFrame, "ModelViewport")',
+        "Slot",
+      ),
+  },
 ];

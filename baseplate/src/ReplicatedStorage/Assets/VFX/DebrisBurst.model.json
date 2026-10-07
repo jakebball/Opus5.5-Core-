@@ -1,8 +1,6 @@
 {
   "className": "ParticleEmitter",
   "properties": {
-    "Rate": 0.0,
-    "Drag": 0.6000000238418579,
     "FlipbookStartRandom": true,
     "Transparency": {
       "NumberSequence": {
@@ -25,13 +23,15 @@
         ]
       }
     },
-    "TextureContent": "rbxassetid://91809408162145",
     "FlipbookLayout": "Grid4x4",
+    "TextureContent": "rbxassetid://91809408162145",
     "FlipbookFramerate": {
       "NumberRange": [
         0.0,
         0.0
       ]
-    }
+    },
+    "Rate": 0.0,
+    "Drag": 0.6000000238418579
   }
 }
