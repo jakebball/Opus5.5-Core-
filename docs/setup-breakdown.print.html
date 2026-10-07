@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+<title>Roblox Claude Setup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@112,700;112,800;100,600&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a drafting sheet. One centred column on a faint blueprint grid; each section is a "view" with a corner label like a contact sheet. */
+:root {
+  --paper: #f2f5f8;
+  --sheet: #fbfcfd;
+  --ink: #142230;
+  --muted: #566577;
+  --rule: #d5dde6;
+  --grid: rgba(20, 60, 110, 0.055);
+  --accent: #d9700b;
+  --accent-soft: #fbe6cf;
+  --steel: #2f6e9e;
+  --steel-soft: #dbe8f3;
+  --game: #d9700b;
+  --ok: #2c7a4b;
+  --display: "Archivo", "Arial Narrow", system-ui, sans-serif;
+  --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0e151c; --sheet: #131c25; --ink: #e5ecf2; --muted: #95a4b4; --rule: #263443;
+    --grid: rgba(120, 170, 220, 0.06); --accent: #f29a3a; --accent-soft: #3a2a17; --steel: #6aa8d8;
+    --steel-soft: #1a2a3a; --game: #f29a3a; --ok: #5cbf86; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0e151c; --sheet: #131c25; --ink: #e5ecf2; --muted: #95a4b4; --rule: #263443;
+  --grid: rgba(120, 170, 220, 0.06); --accent: #f29a3a; --accent-soft: #3a2a17; --steel: #6aa8d8;
+  --steel-soft: #1a2a3a; --game: #f29a3a; --ok: #5cbf86; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background-color: var(--paper); color: var(--ink); font: 400 16px/1.6 var(--body);
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+.page { max-width: 1040px; margin: 0 auto; padding-inline: 20px; padding-block: 40px 72px; display: grid; gap: 28px; }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; letter-spacing: -0.01em; }
+h1 { font-size: clamp(2.2rem, 6vw, 3.6rem); font-weight: 800; font-stretch: 112%; line-height: 1.02; }
+h2 { font-size: clamp(1.4rem, 3vw, 1.85rem); font-weight: 800; font-stretch: 112%; line-height: 1.15; }
+h3 { font-size: 1.05rem; font-weight: 700; font-stretch: 112%; }
+p { margin: 0; max-width: 68ch; }
+a { color: var(--steel); }
+code, .mono { font-family: var(--mono); font-size: 0.86em; }
+code { background: var(--steel-soft); padding: 0.08em 0.35em; border-radius: 3px; overflow-wrap: anywhere; }
+.view { background: var(--sheet); border: 1px solid var(--rule); border-radius: 4px; padding: 28px clamp(18px, 3.5vw, 36px); position: relative; display: grid; gap: 18px; min-width: 0; }
+.tag { position: absolute; top: -1px; right: -1px; font: 600 0.68rem/1 var(--mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); border: 1px solid var(--rule); background: var(--paper); padding: 6px 9px; border-radius: 0 4px 0 4px; }
+.lede { font-size: 1.12rem; color: var(--muted); max-width: 62ch; }
+.eyebrow { font: 600 0.72rem/1 var(--mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); }
+header.hero { display: grid; gap: 18px; padding-block: 8px 4px; }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1px; background: var(--rule); border: 1px solid var(--rule); border-radius: 4px; overflow: hidden; }
+.fact { background: var(--sheet); padding: 14px 16px; display: grid; gap: 2px; }
+.fact b { font: 800 1.7rem/1.1 var(--display); font-stretch: 112%; font-variant-numeric: tabular-nums; }
+.fact span { font-size: 0.85rem; color: var(--muted); }
+.table-wrap { overflow-x: auto; border: 1px solid var(--rule); border-radius: 4px; }
+table { border-collapse: collapse; width: 100%; font-size: 0.93rem; }
+th, td { text-align: left; vertical-align: top; padding: 10px 14px; border-bottom: 1px solid var(--rule); }
+th { font: 600 0.72rem/1.2 var(--mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); background: var(--paper); }
+tr:last-child td { border-bottom: 0; }
+td:first-child { font-weight: 600; white-space: nowrap; }
+.flow { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; counter-reset: step; }
+.stage { border: 1px solid var(--rule); border-radius: 4px; padding: 14px; display: grid; gap: 6px; align-content: start; background: var(--sheet); position: relative; min-width: 0; }
+.stage::before { counter-increment: step; content: counter(step); font: 600 0.7rem/1 var(--mono); color: var(--accent); }
+.stage .time { font: 600 0.74rem/1.3 var(--mono); color: var(--steel); }
+.stage p { font-size: 0.88rem; color: var(--muted); }
+.stage.gate { border-color: var(--accent); background: var(--accent-soft); }
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px 28px; }
+.cols > div { display: grid; gap: 6px; align-content: start; min-width: 0; }
+.cols p { font-size: 0.94rem; color: var(--muted); }
+.skills { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 18px; }
+.group { display: grid; gap: 8px; align-content: start; min-width: 0; }
+.group h3 { font-size: 0.78rem; font-family: var(--mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.skill { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; padding: 10px 12px; border: 1px solid var(--rule); border-radius: 4px; }
+.skill b { font-family: var(--mono); font-size: 0.86rem; color: var(--accent); }
+.skill .size { font: 400 0.72rem/1.6 var(--mono); color: var(--muted); justify-self: end; font-variant-numeric: tabular-nums; }
+.skill p { grid-column: 1 / -1; font-size: 0.88rem; color: var(--muted); }
+.new { font: 600 0.62rem/1 var(--mono); letter-spacing: 0.1em; color: var(--sheet); background: var(--ok); padding: 3px 5px; border-radius: 3px; margin-left: 6px; vertical-align: 2px; }
+.bar { display: flex; height: 46px; border-radius: 4px; overflow: hidden; border: 1px solid var(--rule); }
+.bar > div { min-width: 0; display: flex; align-items: center; padding-inline: 8px; font: 600 0.74rem/1 var(--mono); white-space: nowrap; overflow: hidden; }
+.seg-generic { background: var(--steel); color: var(--sheet); }
+.seg-generic.light { background: var(--steel-soft); color: var(--ink); }
+.seg-game { background: var(--game); color: var(--sheet); }
+.seg-game.light { background: var(--accent-soft); color: var(--ink); }
+.seg-game.mid { background: color-mix(in srgb, var(--game) 55%, var(--sheet)); color: var(--ink); }
+.split { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font: 600 0.74rem/1.4 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; }
+.split .g { color: var(--steel); }
+.split .p { color: var(--game); }
+.legend { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px 22px; font-size: 0.9rem; }
+.legend div { display: grid; grid-template-columns: 12px 1fr auto; gap: 10px; align-items: baseline; }
+.legend i { width: 12px; height: 12px; border-radius: 2px; align-self: center; border: 1px solid var(--rule); }
+.legend .n { font-family: var(--mono); font-variant-numeric: tabular-nums; color: var(--muted); font-size: 0.82rem; }
+.timeline { display: grid; gap: 0; }
+.day { display: grid; grid-template-columns: 92px 1fr; gap: 18px; padding-block: 14px; border-top: 1px solid var(--rule); }
+.day:first-child { border-top: 0; padding-top: 0; }
+.day .date { font: 600 0.8rem/1.4 var(--mono); color: var(--accent); font-variant-numeric: tabular-nums; }
+.day .date small { display: block; color: var(--muted); font-weight: 400; }
+.day ul { margin: 0; padding-left: 1.1em; display: grid; gap: 4px; font-size: 0.94rem; }
+.rules { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px 28px; }
+.rules div { border-left: 3px solid var(--accent); padding-left: 14px; display: grid; gap: 4px; }
+.rules p { font-size: 0.92rem; color: var(--muted); }
+.cmd { display: flex; gap: 8px; align-items: stretch; border: 1px solid var(--rule); border-radius: 4px; background: var(--paper); min-width: 0; }
+.cmd pre { margin: 0; padding: 12px 14px; overflow-x: auto; flex: 1; min-width: 0; font: 400 0.84rem/1.5 var(--mono); }
+.cmd button { font: 600 0.72rem/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; border: 0; border-left: 1px solid var(--rule); background: transparent; color: var(--steel); padding-inline: 14px; cursor: pointer; }
+.cmd button:hover { background: var(--steel-soft); }
+.cmd button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+ol.steps { margin: 0; padding-left: 1.3em; display: grid; gap: 10px; }
+ol.steps li { padding-left: 4px; }
+.gaps { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.gaps li { display: grid; grid-template-columns: auto 1fr; gap: 12px; font-size: 0.94rem; }
+.gaps li b { font: 600 0.68rem/1.6 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); border: 1px solid var(--accent); border-radius: 3px; padding: 0 6px; align-self: start; white-space: nowrap; }
+footer { font-size: 0.85rem; color: var(--muted); text-align: center; }
+@media (max-width: 560px) {
+  .day { grid-template-columns: 1fr; gap: 6px; }
+  td:first-child { white-space: normal; }
+  .cmd { flex-direction: column; }
+  .cmd button { border-left: 0; border-top: 1px solid var(--rule); padding-block: 10px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .stage { transition: border-color 0.2s; }
+  .stage:hover { border-color: var(--steel); }
+}
+</style>
+<style>
+@page { size: A4; margin: 12mm 11mm 14mm; }
+@media print {
+  html, body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { background-image: none; font-size: 13px; }
+  .page { max-width: none; padding-inline: 0; padding-block: 0; gap: 16px; }
+  .view { break-inside: auto; padding: 18px 20px; }
+  #gaps, #rules, #generic { break-inside: avoid; }
+  .view > h2, .view > p { break-after: avoid; }
+  .bar, .split, .legend { break-inside: avoid; }
+  .group { break-inside: avoid; }
+  .skills { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  html, body { width: 100%; max-width: 100%; overflow: hidden; }
+  .flow { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  tr, .stage, .skill, .day, .rules div, .cols > div, .gaps li, .fact { break-inside: avoid; }
+  h2 { break-after: avoid; }
+  .cmd button { display: none; }
+  .cmd pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 0.74rem; }
+  h1 { font-size: 2.4rem; }
+  .flow { grid-template-columns: repeat(4, 1fr); }
+}
+</style>
+
+<div class="page">
+
+<header class="hero">
+  <span class="eyebrow">Team setup · Roblox × Claude Code</span>
+  <h1>Every project starts the same way.<br>Every asset is a script.</h1>
+  <p class="lede">One install gives every Roblox project the same docs, rules and pipelines: <code>/setup</code> writes the standard into the project, headless Blender builds the assets, offline renders replace Studio screenshots, and scripts live on disk so several Claude agents can build one game at once.</p>
+  <div class="facts">
+    <div class="fact"><b>4 days</b><span>Joust Tycoon, from design talk to an approved gameplay MVP</span></div>
+    <div class="fact"><b>14</b><span>skills in the install, one of them new: <code>/studio</code></span></div>
+    <div class="fact"><b>19</b><span>hard rules seeded into every project's tech design</span></div>
+    <div class="fact"><b>≈4 s</b><span>to build an asset and render its four-view sheet</span></div>
+  </div>
+</header>
+
+<section class="view" id="setup">
+  <span class="tag">View · /setup</span>
+  <h2>What one <code>/setup</code> gives a project</h2>
+  <p>Run <code>/setup MyGame</code> with the place open in Studio. It asks what the game is, what it should look like and how animation should feel, then writes all of this. Run it on an existing project and it audits the docs and the live place instead, and offers fixes without overwriting anything.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Layer</th><th>What lands in the project</th><th>What it stops</th></tr></thead>
+      <tbody>
+        <tr><td>Docs skeleton</td><td><code>index.md</code>, <code>tech-design.md</code>, <code>updatelog.md</code>, <code>features/</code></td><td>Every session re-reading the codebase to find its footing. Sessions read two files, then only the feature doc they need.</td></tr>
+        <tr><td>Hard rules</td><td>19 rules pasted into <code>tech-design.md</code>: component reuse, the <code>Assets</code> module, <code>const</code>, Scale-only UI, rendered item pictures, systems attached to instances, component-owned state, Blender for meshes, offline checks and more</td><td>The same mistakes being learned again in every game</td></tr>
+        <tr><td>Art style</td><td><code>## Project Art Style</code>, the palette as code in <code>blender-source/style.py</code>, an optional painter style profile</td><td>Assets from different sessions looking like different games</td></tr>
+        <tr><td>Animation style</td><td><code>features/animation-style.md</code> in the user's own words, grown from every rejection</td><td>Repeating the same correction about feel</td></tr>
+        <tr><td>Asset pipeline</td><td><code>blender-source/</code> and a smoke build that proves Blender works on this machine</td><td>Hand-placed vertices, and finding a broken toolchain halfway through the first asset</td></tr>
+        <tr><td>Code on disk</td><td><code>studio.json</code> and <code>game-source/</code>, mirrored by <code>/studio</code></td><td>Code that only exists in Studio, clobbered edits, no diffs</td></tr>
+        <tr><td>Economy</td><td><code>features/economy.md</code> with value tags, and <code>tools/balance-sim.js</code></td><td>Numbers scattered across configs, and pacing guesses with nothing behind them</td></tr>
+        <tr><td>Baseplate</td><td><code>RunnerBaseplate.rbxl</code>: the Runner framework, AdminSystem and asset folders, with nothing from any one game. Kept as Rojo source and re-extracted from a live game by script</td><td>Every game starting from a different, half-cleaned copy of the last one</td></tr>
+        <tr><td>Templates</td><td><code>CONTRACTS.md</code> for parallel agents, <code>ui-instances.md</code>, <code>ui-backlog.md</code></td><td>Sub-agents colliding, and nobody knowing which GUI is which</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="view" id="pipeline">
+  <span class="tag">View · /blenderassets</span>
+  <h2>The asset loop</h2>
+  <p>Each asset is a Python script. Claude writes it, builds it in Blender with no window, reads the rendered sheet, fixes and rebuilds until it reads right, and only then touches Studio. Nothing is uploaded until the user approves.</p>
+  <div class="flow">
+    <div class="stage"><h3>Script</h3><span class="time">blender-source/Asset.py</span><p>Shapes from Blender modifiers and bmesh ops, colours by name from the palette, sockets and attributes authored in the script.</p></div>
+    <div class="stage"><h3>Build</h3><span class="time">blend.js build · ≈4 s</span><p>Four-view contact sheet, size in studs, triangles per part, warnings for holes, flipped faces and budget.</p></div>
+    <div class="stage"><h3>Paint</h3><span class="time">paint-only rebuild ≈28 s</span><p>For painted styles: one texture per MeshPart, painted by library brushes, baked on the GPU and cached.</p></div>
+    <div class="stage"><h3>Preview</h3><span class="time">blend.js push</span><p>Built as MeshParts in <code>Workspace.BlenderImports</code>. Refuses the wrong place and a running playtest.</p></div>
+    <div class="stage"><h3>Look</h3><span class="time">/assetshot · ≈15 s for 8 views</span><p>Rendered offline from the instances in Studio. Studio's camera never moves.</p></div>
+    <div class="stage gate"><h3>Approve, then upload</h3><span class="time">push --upload</span><p>Mesh and Image assets, straight into <code>ReplicatedStorage.Assets.Models</code> or the map.</p></div>
+    <div class="stage"><h3>Icon</h3><span class="time">/itemicon</span><p>A transparent, outlined render for shops and inventories, stamped on the model as <code>IconImage</code>.</p></div>
+  </div>
+</section>
+
+<section class="view" id="blender">
+  <span class="tag">View · why Blender</span>
+  <h2>Why build in Blender at all</h2>
+  <div class="cols">
+    <div><h3>Real modelling tools</h3><p>Bevel, mirror, array, solidify, boolean, spin and inset replace hundreds of hand-placed vertices in Luau. A crate is a few dozen lines.</p></div>
+    <div><h3>Judged before Studio</h3><p>Every build renders a four-view sheet with geometry checks. Bad meshes are caught in seconds, before anything reaches the place.</p></div>
+    <div><h3>The script is the asset</h3><p>Diffable, reviewable and regenerable. It survives what Studio loses: rolled-back writes, and previews that turn to checkerboards after a restart.</p></div>
+    <div><h3>Many sessions at once</h3><p>Headless means no window and no shared viewport, so several agents build and render in parallel. Ten of Joust Tycoon's castle tiers were built at once, one agent per tier.</p></div>
+    <div><h3>A library that compounds</h3><p>84 painters in two style profiles, Painted Toon and Soft Painted. Painters written for one game are promoted into the library on approval, so the next game starts richer.</p></div>
+    <div><h3>What it does not cover</h3><p>Plain Parts (collision, zones, greybox), UI, VFX, animations, skinned meshes, and art that must stay real Parts for studs. Those keep their usual tools.</p></div>
+  </div>
+</section>
+
+<section class="view" id="skills">
+  <span class="tag">View · inventory</span>
+  <h2>The skills</h2>
+  <p>Sizes are lines of tool code; the rest of each skill is its written guide. Everything runs on plain Node and Python with no packages to install.</p>
+  <div class="skills">
+    <div class="group">
+      <h3>Standard</h3>
+      <div class="skill"><b>/setup</b><span class="size">guide + 4 templates</span><p>Creates or audits a project to the standard; ships the standard itself and the change-summary rule.</p></div>
+      <div class="skill"><b>/studio<span class="new">NEW</span></b><span class="size">696 lines</span><p>Scripts mirrored to disk with conflict-checked pushes; run any Luau file in Studio; one bridge module for new tools; the team's Studio MCP rules.</p></div>
+      <div class="skill"><b>/deslopify</b><span class="size">guide</span><p>Sweeps a project's Luau against the hard rules, one category at a time, with approval.</p></div>
+    </div>
+    <div class="group">
+      <h3>Assets</h3>
+      <div class="skill"><b>/blenderassets</b><span class="size">8,039 lines</span><p>The headless Blender pipeline: blendlib, paintlib, shapelib, inklib and the brush library.</p></div>
+      <div class="skill"><b>/assetshot</b><span class="size">2,212 lines</span><p>Offline renders of any asset, posed rig or animation frame.</p></div>
+      <div class="skill"><b>/itemicon</b><span class="size">318 lines</span><p>Transparent outlined item icons for UI, uploaded and stamped on the model.</p></div>
+      <div class="skill"><b>/importmeshtools</b><span class="size">333 lines</span><p>robloxMeshTools' EditableMesh kit, for projects that build meshes from Luau.</p></div>
+    </div>
+    <div class="group">
+      <h3>Publishing</h3>
+      <div class="skill"><b>/create-animation</b><span class="size">guide</span><p>Uploads a KeyframeSequence as an Animation, with no API key.</p></div>
+      <div class="skill"><b>/create-devproduct · /create-gamepass</b><span class="size">guide</span><p>Monetisation products through Open Cloud, registered in the project's config.</p></div>
+      <div class="skill"><b>/upload-images</b><span class="size">guide</span><p>Bulk Decal uploads with rate limiting.</p></div>
+    </div>
+    <div class="group">
+      <h3>Wiring</h3>
+      <div class="skill"><b>/makegui</b><span class="size">guide</span><p>A ScreenGui wired into the Runner framework: Frame, Button and a Gui component.</p></div>
+      <div class="skill"><b>/makeweapon</b><span class="size">guide</span><p>A gun model wired into the FPS layer.</p></div>
+      <div class="skill"><b>/makereactcomponent</b><span class="size">guide</span><p>An authored GUI turned into a react-lua component.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="view" id="generic">
+  <span class="tag">View · generic vs game</span>
+  <h2>How much of a project is the setup</h2>
+  <p>Measured on Joust Tycoon on 2026-10-06, in lines of code. The blue share came with the setup and the baseplate. The orange share is the game itself, written with the setup's tools and to its rules.</p>
+  <div class="split"><span class="g">Generic · 45.9k lines · 28%</span><span class="p">The game · 115.7k lines · 72%</span></div>
+  <div class="bar" role="img" aria-label="Stacked bar: skills 11.7k, Runner boilerplate 34.2k, game code 25.7k, asset scripts 62.8k, build scripts 27.2k lines">
+    <div class="seg-generic" style="width:7.24%">11.7k</div>
+    <div class="seg-generic light" style="width:21.16%">34.2k</div>
+    <div class="seg-game" style="width:15.9%">25.7k</div>
+    <div class="seg-game mid" style="width:38.86%">62.8k</div>
+    <div class="seg-game light" style="width:16.84%">27.2k</div>
+  </div>
+  <div class="legend">
+    <div><i class="seg-generic"></i><span>The skills (this repo)</span><span class="n">11.7k</span></div>
+    <div><i class="seg-generic light"></i><span>Runner boilerplate and libraries</span><span class="n">34.2k</span></div>
+    <div><i class="seg-game"></i><span>Game code: components, UI, game Shared</span><span class="n">25.7k</span></div>
+    <div><i class="seg-game mid"></i><span>Asset scripts (387 Blender files)</span><span class="n">62.8k</span></div>
+    <div><i class="seg-game light"></i><span>Map, UI and animation build scripts</span><span class="n">27.2k</span></div>
+  </div>
+  <p>Lines understate the split. Every structural decision came from the setup: where things live, how they are built, checked, pushed, documented and approved. The game had to supply only what makes it Joust Tycoon.</p>
+</section>
+
+<section class="view" id="case">
+  <span class="tag">View · case study</span>
+  <h2>Joust Tycoon, day by day</h2>
+  <p>Ordered by date, from the project's update log (43 entries in four days).</p>
+  <div class="timeline">
+    <div class="day"><div class="date">10-03<small>1 entry</small></div><ul><li>Design settled in conversation; <code>/setup</code> wrote the docs, the hard rules, the animation style and the economy.</li></ul></div>
+    <div class="day"><div class="date">10-04<small>15 entries</small></div><ul><li>Release balance and the 22-knight roster, checked in the pacing sim.</li><li>Painted Toon chosen and approved on a starter set (lance, armour, horse). Its painted pipeline went into <code>/blenderassets</code> for every later game.</li><li>All seven lance and armour tiers and five horses built, each with five mutations: 114 rigged templates uploaded.</li><li>Mounted clips generated and uploaded, shared by every horse.</li></ul></div>
+    <div class="day"><div class="date">10-05<small>13 entries</small></div><ul><li>Greybox of the whole world from one script.</li><li>The Stone Keep castle kit, then ten more castle tiers built one sub-agent per tier, all approved and uploaded.</li><li>Greenmeadow terrain, forest, farmland, fair and ambient life.</li></ul></div>
+    <div class="day"><div class="date">10-06<small>14 entries</small></div><ul><li>The Ashen Fields, built one sub-agent per asset family.</li><li>Full UI in the approved Candy Maximal style, every panel built by a script.</li><li>Gameplay MVP: five sub-agents to one contract, audited twice, approved.</li></ul></div>
+  </div>
+</section>
+
+<section class="view" id="rules">
+  <span class="tag">View · operating rules</span>
+  <h2>The rules that make it work</h2>
+  <div class="rules">
+    <div><h3>Docs wait for approval</h3><p>A change closes with a two-to-three sentence summary. The docs are written once the user says it works, so nothing wrong gets documented.</p></div>
+    <div><h3>Claude never playtests</h3><p>It makes the change and says what to check. The user plays.</p></div>
+    <div><h3>Never through Studio's camera</h3><p>Every visual check is an offline render. The camera is shared by every session and the user.</p></div>
+    <div><h3>Change the script, not the output</h3><p>Maps, GUIs, assets and code all have a source on disk. Studio runs what was pushed.</p></div>
+    <div><h3>One reference asset, then volume</h3><p>Settle the style on one approved asset before building a batch.</p></div>
+    <div><h3>Parallel agents work to a contract</h3><p>Agents edit their own files and compile-check. One orchestrator pushes, uploads and rebuilds shared things.</p></div>
+  </div>
+</section>
+
+<section class="view" id="install">
+  <span class="tag">View · install</span>
+  <h2>Install it</h2>
+  <ol class="steps">
+    <li>Clone the repo and run the installer. It checks Node, git, Claude Code and Blender, installs the skills, fetches robloxMeshTools, writes the team rules into <code>~/.claude/CLAUDE.md</code> and smoke-builds a crate.
+      <div class="cmd"><pre id="cmd-install">powershell -ExecutionPolicy Bypass -File install.ps1 -ProjectsDir "D:\Roblox"</pre><button type="button" data-copy="cmd-install">Copy</button></div>
+    </li>
+    <li>Install the Studio MCP plugin from its releases page into your Plugins folder, and turn on <em>Allow HTTP Requests</em> in each place.</li>
+    <li>Register the MCP server with Claude Code.
+      <div class="cmd"><pre id="cmd-mcp">claude mcp add robloxstudio -- npx -y robloxstudio-mcp@latest</pre><button type="button" data-copy="cmd-mcp">Copy</button></div>
+    </li>
+    <li>Open <code>baseplate/RunnerBaseplate.rbxl</code> in Studio, publish it as a new experience, and set the project up.
+      <div class="cmd"><pre id="cmd-setup">/setup MyGame</pre><button type="button" data-copy="cmd-setup">Copy</button></div>
+    </li>
+  </ol>
+  <p>macOS and Linux use <code>./install.sh --projects ~/Roblox</code>. The JARVIS voice is opt-in with <code>-Persona jarvis</code>.</p>
+</section>
+
+<section class="view" id="gaps">
+  <span class="tag">View · limits</span>
+  <h2>Known limits</h2>
+  <ul class="gaps">
+    <li><b>Platform</b><span>Tested on Windows only. The tools are plain Node and Blender, so macOS should work, but nobody has run it there yet.</span></li>
+    <li><b>GUIs</b><span>Offline renders do not draw GUIs. GUI layout is checked by reading sizes through the MCP, and the final look is judged in Play.</span></li>
+        <li><b>Studio MCP</b><span>A third-party plugin whose upstream was archived on 2026-06-06; a maintained fork exists. The tools only need its <code>execute_luau</code> bridge.</span></li>
+  </ul>
+</section>
+
+<footer>Generated from the live setup on 2026-10-06. The repo's <code>maintainer/export.js</code> regenerates the skills whenever they improve.</footer>
+
+</div>
+
+<script>
+document.querySelectorAll("[data-copy]").forEach(function (button) {
+  button.addEventListener("click", function () {
+    var source = document.getElementById(button.getAttribute("data-copy"));
+    var text = source.textContent;
+    var done = function (label) { button.textContent = label; setTimeout(function () { button.textContent = "Copy"; }, 1600); };
+    var selectFallback = function () {
+      var range = document.createRange();
+      range.selectNodeContents(source);
+      var selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+      done("Selected");
+    };
+    try {
+      navigator.clipboard.writeText(text).then(function () { done("Copied"); }, selectFallback);
+    } catch (error) {
+      selectFallback();
+    }
+  });
+});
+</script>
+
+</body>
+</html>
