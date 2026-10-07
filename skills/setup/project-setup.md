@@ -14,6 +14,7 @@ The standard leans on a small toolchain. `/setup` checks it on every new project
 | Roblox Studio + the Studio MCP plugin ([boshyxd/robloxstudio-mcp](https://github.com/boshyxd/robloxstudio-mcp)), with the MCP server added to Claude Code as `robloxstudio` | every Studio read and write, and the HTTP bridge (`127.0.0.1:58741-58750/mcp`) the Node tools call | `node ~/.claude/skills/studio/sync.js probe` |
 | Blender 4.1+ | `/blenderassets` builds, `/assetshot` and `/itemicon` renders (headless, no window) | the smoke build in step 6 |
 | Node 18+ | every skill script (global `fetch`, no npm packages) | `node --version` |
+| ffmpeg | `/demo` records and encodes feature videos (`winget install Gyan.FFmpeg`) | `node ~/.claude/skills/demo/demo.js check` |
 | git | the project history, and `game-source/` diffs | `git --version` |
 | robloxMeshTools ([MrChickenRocket/robloxMeshTools](https://github.com/MrChickenRocket/robloxMeshTools)) | `MeshKit`, sent with every `/blenderassets` push; lives in `~/.claude/skills/importmeshtools/vendor/robloxMeshTools/` | that folder exists |
 
@@ -332,6 +333,7 @@ Every project must have the following at its root:
 ├── studio.json       # Roblox projects: the placeId every tool checks, plus run.js steps, preludes and shared modules
 ├── ui-source/        # Roblox projects with UI: the GUI builder scripts, and renders/ for /itemicon
 ├── tools/            # Project tools, e.g. tools/balance-sim.js (the economy's pacing sim)
+├── demo-source/      # Roblox projects: /demo scripts, one per feature, kept as reusable video checks
 └── ...               # Project-specific files (map-source/, animation-source/, configs)
 ```
 

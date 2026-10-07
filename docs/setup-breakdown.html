@@ -134,7 +134,7 @@ footer { font-size: 0.85rem; color: var(--muted); text-align: center; }
   <p class="lede">One install gives every Roblox project the same docs, rules and pipelines: <code>/setup</code> writes the standard into the project, headless Blender builds the assets, offline renders replace Studio screenshots, and scripts live on disk so several Claude agents can build one game at once.</p>
   <div class="facts">
     <div class="fact"><b>4 days</b><span>Joust Tycoon, from design talk to an approved gameplay MVP</span></div>
-    <div class="fact"><b>14</b><span>skills in the install, one of them new: <code>/studio</code></span></div>
+    <div class="fact"><b>15</b><span>skills in the install, new: <code>/studio</code> and <code>/demo</code></span></div>
     <div class="fact"><b>33</b><span>hard rules seeded into every project's tech design</span></div>
     <div class="fact"><b>≈4 s</b><span>to build an asset and render its four-view sheet</span></div>
   </div>
@@ -205,6 +205,7 @@ footer { font-size: 0.85rem; color: var(--muted); text-align: center; }
       <h3>Assets</h3>
       <div class="skill"><b>/blenderassets</b><span class="size">8,039 lines</span><p>The headless Blender pipeline: blendlib, paintlib, shapelib, inklib and the brush library.</p></div>
       <div class="skill"><b>/assetshot</b><span class="size">2,212 lines</span><p>Offline renders of any asset, posed rig or animation frame.</p></div>
+      <div class="skill"><b>/demo<span class="new">NEW</span></b><span class="size">663 lines</span><p>A phone-ready video of a feature in a real playtest: scripted walk, camera, captions and key presses, trimmed and cropped to the game view. Offered after every gameplay change.</p></div>
       <div class="skill"><b>/itemicon</b><span class="size">318 lines</span><p>Transparent outlined item icons for UI, uploaded and stamped on the model.</p></div>
       <div class="skill"><b>/importmeshtools</b><span class="size">333 lines</span><p>robloxMeshTools' EditableMesh kit, for projects that build meshes from Luau.</p></div>
     </div>
@@ -262,7 +263,7 @@ footer { font-size: 0.85rem; color: var(--muted); text-align: center; }
   <h2>The rules that make it work</h2>
   <div class="rules">
     <div><h3>Docs wait for approval</h3><p>A change closes with a two-to-three sentence summary. The docs are written once the user says it works, so nothing wrong gets documented.</p></div>
-    <div><h3>Claude never playtests</h3><p>It makes the change and says what to check. The user plays.</p></div>
+    <div><h3>Claude never playtests</h3><p>It makes the change, says what to check and offers a <code>/demo</code> video, the one time it may start a playtest. The user plays.</p></div>
     <div><h3>Never through Studio's camera</h3><p>Every visual check is an offline render. The camera is shared by every session and the user.</p></div>
     <div><h3>Change the script, not the output</h3><p>Maps, GUIs, assets and code all have a source on disk. Studio runs what was pushed.</p></div>
     <div><h3>One reference asset, then volume</h3><p>Settle the style on one approved asset before building a batch.</p></div>
@@ -274,7 +275,7 @@ footer { font-size: 0.85rem; color: var(--muted); text-align: center; }
   <span class="tag">View · install</span>
   <h2>Install it</h2>
   <ol class="steps">
-    <li>Clone the repo and run the installer. It checks Node, git, Claude Code and Blender, installs the skills, fetches robloxMeshTools, writes the team rules into <code>~/.claude/CLAUDE.md</code> and smoke-builds a crate.
+    <li>Install Blender and ffmpeg, clone the repo and run the installer. It checks Node, git, Claude Code, Blender and ffmpeg, installs the skills, fetches robloxMeshTools, writes the team rules into <code>~/.claude/CLAUDE.md</code> and smoke-builds a crate.
       <div class="cmd"><pre id="cmd-install">powershell -ExecutionPolicy Bypass -File install.ps1 -ProjectsDir "D:\Roblox"</pre><button type="button" data-copy="cmd-install">Copy</button></div>
     </li>
     <li>Install the Studio MCP plugin from its releases page into your Plugins folder, and turn on <em>Allow HTTP Requests</em> in each place.</li>
@@ -292,7 +293,7 @@ footer { font-size: 0.85rem; color: var(--muted); text-align: center; }
   <span class="tag">View · limits</span>
   <h2>Known limits</h2>
   <ul class="gaps">
-    <li><b>Platform</b><span>Tested on Windows only. The tools are plain Node and Blender, so macOS should work, but nobody has run it there yet.</span></li>
+    <li><b>Platform</b><span>Tested on Windows only; <code>/demo</code> records with Windows screen capture. The tools are plain Node and Blender, so macOS should work, but nobody has run it there yet.</span></li>
     <li><b>GUIs</b><span>Offline renders do not draw GUIs. GUI layout is checked by reading sizes through the MCP, and the final look is judged in Play.</span></li>
         <li><b>Studio MCP</b><span>A third-party plugin whose upstream was archived on 2026-06-06; a maintained fork exists. The tools only need its <code>execute_luau</code> bridge.</span></li>
   </ul>

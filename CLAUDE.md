@@ -8,7 +8,7 @@ chain. `README.md` is the user-facing pitch and install guide; this file is for 
 
 | Path | What it is | Edited how |
 | --- | --- | --- |
-| `skills/<name>/` | The 14 Claude Code skills the installer copies into `~/.claude/skills/` | **Generated.** Edit the maintainer's live install, then `node maintainer/export.js` |
+| `skills/<name>/` | The 15 Claude Code skills the installer copies into `~/.claude/skills/` | **Generated.** Edit the maintainer's live install, then `node maintainer/export.js` |
 | `skills/setup/project-setup.md`, `change-summary.md`, `examples/animation-style.md`, `templates/` | The standard `/setup` enforces, the change-summary rule, the worked animation guide, the templates | Generated with the skills, from the maintainer's standards folder |
 | `claude/CLAUDE.md` | The team rules block the installer writes into each user's `~/.claude/CLAUDE.md` | By hand. `<projects>` is replaced at install time |
 | `claude/personas/*.md` | Opt-in voices (`-Persona jarvis`) prepended to that block | By hand |
@@ -177,6 +177,21 @@ transparent square orthographic image. Pose scripts (`--pose FILE`, `--arg k=v`)
 `shot` API (`find`, `pivot`, `temporary`, `studioCamera`, `snap`); they must never touch shared state. Particles,
 lights, GUIs and unowned meshes are not drawn (reported).
 
+### `/demo`
+`demo.js record <demo.luau>` wraps the demo body with `DemoKit.luau` into `StarterPlayerScripts.__DemoDirector` (plus an
+optional `ServerScriptService.__DemoDirectorServer`; both delete themselves outside Studio), brings the Studio window to
+the front (PowerShell, `ShowWindow` + `SetForegroundWindow`), records the **whole desktop** with ffmpeg `gdigrab`,
+starts the playtest through the bridge's HTTP endpoint (`tools/call` `start_playtest` `{mode: "play"}`), polls
+`get_playtest_output` for `[demo] start` / `[demo] done` and forwards `[demo:key] <KeyCode> <hold>` lines as
+`simulate_keyboard_input` on `client-1`, then stops the playtest and ffmpeg and removes the scripts in a `finally`.
+`process` scans the raw video at 10 fps / 320×180 for **marker flashes**: DemoKit fills the game view magenta for 0.5 s
+then green for 0.5 s at the start and the end. A flash is a frame whose pure-magenta share jumps 6 % above the
+recording's median and lasts ≤ 1.5 s; the crop box is the solid rows and columns of pixels that are magenta in the
+flash and green 0.5 s later, so nothing static on the desktop or in the game can fake it. The clip is trimmed between
+the flashes, cropped, scaled to ≤ 1280 wide and encoded H.264 under 24 MB with a poster JPEG. **No flash, no clip**: the
+raw desktop recording is deleted (unless `--keep-raw`) and never sent. Claude never calls `start_playtest` itself
+(the maintainer's settings deny it); `/demo` is the sanctioned path, used only on the user's request.
+
 ### `/itemicon`
 `icon.js` runs `shot.js --icon <2×size>`, then `finish.py` (PIL: trim alpha, pad square, dilate + blur an outline,
 LANCZOS down). `--upload` writes 128-row base64 chunks into an EditableImage and `CreateAssetAsync`s an Image; the id is
@@ -252,4 +267,5 @@ Hard Rule sweeps).
   `game-source/` they should edit disk and `sync.js push`.
 - `/upload-images` trusts the cached creator over the live place (`/create-animation` does the opposite).
 - No offline renderer for GUIs; `assetshot` skips them.
-- Windows is the only tested platform.
+- Windows is the only tested platform. `/demo` uses `gdigrab`, so it is Windows-only, and it has not yet recorded a real
+  playtest end to end (built and tested offline on 2026-10-07 while Studio was in use).

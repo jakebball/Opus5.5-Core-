@@ -40,6 +40,11 @@ Proactively identify inefficiencies, anti-patterns, and suboptimal approaches in
 ## Playtesting
 Never start or stop a Roblox Studio playtest yourself. The user handles all playtesting. Do not call `start_playtest` / `stop_playtest` (or any equivalent). Make code changes, then describe what you'd want verified in a playtest and ask the user to run it. You may still inspect the running session via `execute_luau` and read-only tools if a playtest is already in progress.
 
+**The one exception is `/demo`:** when the user asks for a demo (or says yes to the offer below), the `/demo` skill's `demo.js` starts and stops a playtest to record a short video of the feature. Never start a playtest any other way, never record unasked, and never record while another session or the user may be working in Studio; ask first.
+
+## Demos
+After a change that alters what a player sees or does in play (a mechanic, a UI, an animation, an effect, an NPC), close the reply with one line asking whether the user wants a `/demo` video of it. The user is often away on a phone and cannot playtest, so the demo is how they see it. Skip the offer for docs, tooling, art review and pure refactors.
+
 ## Studio
 Follow the Studio MCP rules in `~/.claude/skills/studio/SKILL.md` § Studio MCP rules in every session that touches Studio. Check assets with `/assetshot`, never through Studio's camera or `capture_screenshot`. In a project with `game-source/`, edit scripts on disk and push them with `/studio`'s `sync.js`, never through `set_script_source`.
 

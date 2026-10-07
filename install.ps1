@@ -12,7 +12,8 @@ param(
     [string]$Persona = "",
     [string]$ClaudeHome = (Join-Path $HOME ".claude"),
     [switch]$SkipMeshTools,
-    [switch]$SkipSmokeTest
+    [switch]$SkipSmokeTest,
+    [switch]$InstallFfmpeg
 )
 
 $ErrorActionPreference = "Stop"
@@ -46,6 +47,21 @@ if (-not $blender) {
     }
 }
 if ($blender) { Say "blender $blender" } else { $Problems.Add("Blender 4.1+ not found: install it from https://www.blender.org (or set the BLENDER env var to blender.exe)") }
+
+function Find-Ffmpeg {
+    $command = Get-Command ffmpeg -ErrorAction SilentlyContinue
+    if ($command) { return $command.Source }
+    $link = Join-Path $env:LOCALAPPDATA "Microsoft\WinGet\Links\ffmpeg.exe"
+    if (Test-Path $link) { return $link }
+    return $null
+}
+$ffmpeg = Find-Ffmpeg
+if (-not $ffmpeg -and $InstallFfmpeg) {
+    Say "installing ffmpeg with winget"
+    winget install --id Gyan.FFmpeg -e --silent --accept-source-agreements --accept-package-agreements | Out-Null
+    $ffmpeg = Find-Ffmpeg
+}
+if ($ffmpeg) { Say "ffmpeg $ffmpeg" } else { $Problems.Add("ffmpeg not found (/demo needs it): run install.ps1 -InstallFfmpeg, or winget install Gyan.FFmpeg") }
 
 Step "Skills -> $ClaudeHome\skills"
 $skillsTarget = Join-Path $ClaudeHome "skills"

@@ -45,6 +45,7 @@ if [ -z "$BLENDER_BIN" ]; then
   elif [ -x /Applications/Blender.app/Contents/MacOS/Blender ]; then BLENDER_BIN=/Applications/Blender.app/Contents/MacOS/Blender; fi
 fi
 [ -n "$BLENDER_BIN" ] && say "blender $BLENDER_BIN" || PROBLEMS+=("Blender 4.1+ not found: install it, or export BLENDER=/path/to/blender")
+command -v ffmpeg >/dev/null && say "ffmpeg $(command -v ffmpeg)" || PROBLEMS+=("ffmpeg not found (/demo needs it): brew install ffmpeg, or your package manager's ffmpeg")
 
 step "Skills -> $CLAUDE_HOME/skills"
 SKILLS="$CLAUDE_HOME/skills"

@@ -12,7 +12,7 @@ gear tier, castle tier, both zones and the full UI built and approved, in four d
 | Path | What it is |
 | --- | --- |
 | `install.ps1`, `install.sh` | The installers |
-| `skills/` | The 14 Claude Code skills, including `/setup` and its standard (`skills/setup/project-setup.md`) |
+| `skills/` | The 15 Claude Code skills, including `/setup` and its standard (`skills/setup/project-setup.md`) |
 | `baseplate/RunnerBaseplate.rbxl` | The place every new game starts from: the Runner framework, AdminSystem and asset folders, nothing game-specific |
 | `baseplate/src/` | The same baseplate as Rojo source, so changes to it are reviewable |
 | `claude/` | The team `CLAUDE.md` rules, the optional JARVIS persona, a permissions example |
@@ -20,6 +20,20 @@ gear tier, castle tier, both zones and the full UI built and approved, in four d
 | `CLAUDE.md` | How everything works inside, for Claude (Opus) maintaining this repo |
 | `UPLOAD.md` | How to publish this repo to GitHub |
 | `maintainer/` | Regenerates `skills/` and the baseplate from a live install and a live game |
+
+## Requirements
+
+Install these before running the installer. It checks for every one and tells you what is missing.
+
+| Tool | Why you need it | Get it |
+| --- | --- | --- |
+| **Blender 4.1 or newer** | Builds every 3D asset (`/blenderassets`) and renders every visual check (`/assetshot`, `/itemicon`). Runs headless: you never open it | https://www.blender.org/download |
+| **ffmpeg** | Records and encodes feature videos (`/demo`) so you can see a feature working from your phone | `winget install Gyan.FFmpeg` (or run the installer with `-InstallFfmpeg`); macOS `brew install ffmpeg` |
+| **Node.js 18 or newer** | Runs every skill's tools | https://nodejs.org |
+| **Claude Code** | Runs the skills | https://code.claude.com |
+| **Roblox Studio + the Studio MCP plugin** | Every Studio read and write | see Install below |
+| **git** | Cloning this repo, and each project's history | https://git-scm.com |
+| Rojo 7.5+ (maintainers only) | Rebuilding the baseplate from source | https://rojo.space |
 
 ## Install
 
@@ -36,8 +50,8 @@ macOS / Linux: `./install.sh --projects ~/Roblox` (set `BLENDER` if Blender is n
 
 The installer:
 
-1. checks Node 18+, git, Claude Code and Blender 4.1+;
-2. copies the 14 skills into `~/.claude/skills/` (any existing copy is moved to `~/.claude/backups/` first, and the
+1. checks Node 18+, git, Claude Code, Blender 4.1+ and ffmpeg (`-InstallFfmpeg` installs ffmpeg with winget);
+2. copies the 15 skills into `~/.claude/skills/` (any existing copy is moved to `~/.claude/backups/` first, and the
    `/assetshot` mesh cache is kept);
 3. fetches [robloxMeshTools](https://github.com/MrChickenRocket/robloxMeshTools) at the pinned commit (it is not
    redistributed here);
@@ -109,6 +123,7 @@ describe the asset ─▶ blender-source/Asset.py ─▶ blend.js build (≈4 s)
 | `/studio` | `sync.js`: every script mirrored to `game-source/`, compile-checked pushes with conflict detection; `run.js`: run any Luau file in Studio with ARGS, `-- uses:` modules and long deferred runs; `bridge.js` for new tools; the team's Studio MCP rules |
 | `/blenderassets` | The headless-Blender asset pipeline above (`blend.js`, `blendlib`, `paintlib`, `shapelib`, `inklib`, the brush library) |
 | `/assetshot` | Offline renders of any asset, posed rig or animation frame, read from Studio without touching its camera |
+| `/demo` | A short phone-ready video of a feature running in a real playtest: a scripted demo (walk, camera, captions, real key presses) is recorded with ffmpeg, then trimmed and cropped to the game view. Claude offers one after every gameplay change |
 | `/itemicon` | Transparent outlined item icons for UI, uploaded and stamped on the model |
 | `/importmeshtools` | robloxMeshTools' EditableMesh kit, for projects that build meshes from Luau |
 | `/create-animation` | Upload a KeyframeSequence as an Animation asset (no API key through the MCP) |
@@ -138,7 +153,7 @@ setup; everything in the second half of the table is the game. The setup is what
 ## Rules that make it work
 
 - **Docs wait for approval.** A change closes with a 2-3 sentence summary; docs are written once the user says it works.
-- **Never start or stop a playtest.** Claude makes the change and says what to check; the user plays.
+- **Never start or stop a playtest**, except `/demo` recording a video the user asked for. Claude makes the change, says what to check, and offers a demo; the user plays.
 - **Never look through Studio's camera.** Render with `/assetshot`.
 - **Scripts and assets live on disk.** Studio runs what was pushed; to change a thing, change its script and run it again.
 - **One reference asset before a batch.** Settle the style on one approved asset, then build volume.

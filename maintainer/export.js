@@ -27,7 +27,7 @@ const DRY = argv.includes("--dry");
 const HOME = os.homedir();
 const USER = path.basename(HOME);
 
-const SHIPPED = ["setup", "studio", "blenderassets", "assetshot", "itemicon", "importmeshtools", "create-animation", "create-devproduct", "create-gamepass", "upload-images", "makegui", "makereactcomponent", "makeweapon", "deslopify"];
+const SHIPPED = ["setup", "studio", "demo", "blenderassets", "assetshot", "itemicon", "importmeshtools", "create-animation", "create-devproduct", "create-gamepass", "upload-images", "makegui", "makereactcomponent", "makeweapon", "deslopify"];
 const EXCLUDE = [/[\\/]__pycache__([\\/]|$)/, /^assetshot[\\/]cache([\\/]|$)/, /^importmeshtools[\\/]vendor[\\/]robloxMeshTools([\\/]|$)/, /\.pyc$/, /(^|[\\/])\.env$/, /(^|[\\/])node_modules([\\/]|$)/];
 const TEXT = /\.(md|js|py|luau|lua|json|txt|html|css|sh|ps1)$/i;
 const EXTRA = [
