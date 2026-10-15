@@ -15,7 +15,6 @@ The standard leans on a small toolchain. The installer checks it once per machin
 | Blender 4.1+ | `/blenderassets` builds, `/assetshot` and `/itemicon` renders (headless, no window) | the installer's smoke build |
 | Node 18+ | every skill script (global `fetch`, no npm packages) | `node --version` |
 | ffmpeg | `/demo` records and encodes feature videos (`winget install Gyan.FFmpeg`) | `node ~/.claude/skills/demo/demo.js check` |
-| git | the project history, and `game-source/` diffs | `git --version` |
 | robloxMeshTools ([MrChickenRocket/robloxMeshTools](https://github.com/MrChickenRocket/robloxMeshTools)) | `MeshKit`, sent with every `/blenderassets` push; lives in `~/.claude/skills/importmeshtools/vendor/robloxMeshTools/` | that folder exists |
 
 ## Default Roblox Boilerplate (inherited by every new place)
@@ -272,7 +271,7 @@ project; the skill's `SKILL.md` is the how-to.
 **Every Roblox project keeps every script in the place mirrored on disk in `game-source/`**, through the `/studio`
 skill (`~/.claude/skills/studio/`). `sync.js` pulls the place's scripts to files, pushes disk edits back
 one file at a time after a compile check, refuses to overwrite a script someone changed in Studio since the last sync,
-and reads every push back. The disk copy is the one edited, diffed, reviewed and committed; the place runs what was
+and reads every push back. The disk copy is the one edited and reviewed; the place runs what was
 pushed. Joust Tycoon is the worked example: its gameplay layer was built in one pass by five sub-agents editing disk in
 parallel while one orchestrator pushed.
 
@@ -331,7 +330,7 @@ Every project must have the following at its root:
 ├── updatelog.md      # Chronological log of all changes
 ├── features/         # One MD file per feature/system (e.g., features/inventory.md); art-direction.md opens with the art style; animation-style.md holds the animation style
 ├── blender-source/   # Roblox projects: one headless-Blender script per 3D asset (/blenderassets), plus style.py (the palette)
-├── game-source/      # Roblox projects: every script in the place, mirrored by /studio sync.js (.sync/ is git-ignored)
+├── game-source/      # Roblox projects: every script in the place, mirrored by /studio sync.js (.sync/ holds sync.js state)
 ├── studio.json       # Roblox projects: the placeId every tool checks, plus run.js steps, preludes and shared modules
 ├── ui-source/        # Roblox projects with UI: the GUI builder scripts, and renders/ for /itemicon
 ├── tools/            # Project tools, e.g. tools/balance-sim.js (the economy's pacing sim)
@@ -358,8 +357,7 @@ A Roblox project gets:
 ├── blender-source/style.py     # PALETTE = {}
 ├── ui-source/renders/          # for /itemicon
 ├── demo-source/                # for /demo
-├── studio.json, game-source/   # once a place is linked (scaffold.js link)
-└── .gitignore, .gitattributes  # git init is run
+└── studio.json, game-source/   # once a place is linked (scaffold.js link)
 ```
 
 - **The Hard Rules are inserted at copy time** from § Seeded Hard Rules below, together with the Change Summaries
@@ -372,6 +370,8 @@ A Roblox project gets:
   `features/ui-backlog.md` with the first UI (§ UI Pipeline); a `CONTRACTS.md` when a pass is split across
   sub-agents (§ Parallel Builds).
 - **The machine** (Blender, ffmpeg, Node, the Studio MCP) is checked once by the installer, not per project.
+- **No git.** Projects are never git repositories: Roblox Studio's place version history is the history. Git is used
+  only for `roblox-claude-setup`, the repo that distributes these rules and skills.
 
 ## Seeded Hard Rules
 

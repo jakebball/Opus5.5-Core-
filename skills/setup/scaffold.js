@@ -4,7 +4,7 @@
 //   node scaffold.js new <Name> [--dir DIR] [--kind roblox|generic] [--pitch "TEXT"] [--place-id ID]
 //        copy template/<kind>/ to DIR/<Name> (DIR defaults to the current folder), fill {{NAME}}, {{DATE}}, {{PITCH}},
 //        the place line, and for Roblox the seeded Hard Rules and the Change Summaries pointer (read from
-//        project-setup.md at copy time, so the template never drifts from the standard), then git init.
+//        project-setup.md at copy time, so the template never drifts from the standard). Projects never use git.
 //        With --place-id the place is linked at once (below).
 //   node scaffold.js link --place-id ID          run inside a project: write studio.json, pull every script into
 //                                                game-source/ through /studio, and record the place in index.md
@@ -65,7 +65,7 @@ function copyTemplate(source, target, fill) {
     if (fs.statSync(from).isDirectory()) {
       fs.mkdirSync(to, { recursive: true });
       copyTemplate(from, to, fill);
-    } else if (/\.(md|py|json|luau|txt)$|^\.git(ignore|attributes)$/.test(name)) {
+    } else if (/\.(md|py|json|luau|txt)$/.test(name)) {
       fs.writeFileSync(to, fill(fs.readFileSync(from, "utf8")));
     } else {
       fs.copyFileSync(from, to);
@@ -121,8 +121,7 @@ function create(options) {
   };
   copyTemplate(template, target, (text) => text.replace(/\{\{([A-Z_]+)\}\}/g, (whole, key) => (key in values ? values[key] : whole)));
 
-  const git = spawnSync("git", ["init", "-q"], { cwd: target, encoding: "utf8" });
-  const report = [`created  ${target} (${kind} template${kind === "roblox" ? `, ${standard.names.length} seeded Hard Rules` : ""})`, git.status === 0 ? "git      initialised" : "git      not available; run git init yourself"];
+  const report = [`created  ${target} (${kind} template${kind === "roblox" ? `, ${standard.names.length} seeded Hard Rules` : ""})`];
   if (options["place-id"] && kind === "roblox") {
     const result = link(target, options["place-id"]);
     report.push(`place    ${result.linked ? "linked: " : ""}${result.message.split("\n").pop()}`);

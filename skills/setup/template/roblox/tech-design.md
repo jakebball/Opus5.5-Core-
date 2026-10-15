@@ -20,7 +20,7 @@ re-document or re-implement what already ships; only additions and deviations ar
 - **Assets** live in `ReplicatedStorage.Assets.<Models|Misc|Gui|VFX|Sounds|Tool|Animations>` and are fetched through
   the `Assets` module.
 - **Code on disk:** `game-source/` mirrors every script in the place (`/studio`'s `sync.js`); it is the copy that is
-  edited, reviewed and committed. Generated scripts are listed here and regenerated, never hand-edited.
+  edited and reviewed. Generated scripts are listed here and regenerated, never hand-edited.
 - **3D assets** are authored in headless Blender (`blender-source/`, `/blenderassets`), to the art style.
 
 ### Differences from the baseplate

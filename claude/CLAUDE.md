@@ -42,6 +42,9 @@ Never start or stop a Roblox Studio playtest yourself. The user handles all play
 
 **The one exception is `/demo`:** when the user asks for a demo (or says yes to the offer below), the `/demo` skill's `demo.js` starts and stops a playtest to record a short video of the feature. Never start a playtest any other way, never record unasked, and never record while another session or the user may be working in Studio; ask first.
 
+## No Git in Projects
+Never use git in a game project: no `git init`, commits, branches or branch proposals. Roblox Studio's version history is the history. Git is used only for `roblox-claude-setup`, the repo that distributes the rules and skills.
+
 ## Demos
 After a change that alters what a player sees or does in play (a mechanic, a UI, an animation, an effect, an NPC), close the reply with one line asking whether the user wants a `/demo` video of it. The user is often away on a phone and cannot playtest, so the demo is how they see it. Skip the offer for docs, tooling, art review and pure refactors.
 

@@ -18,14 +18,14 @@ node <skill>/run.js <file.luau | step>... [--set KEY=VALUE]... [--port N]
 
 Studio is a bad place to keep the only copy of the code: writes made over the bridge can roll back, an open script
 tab overwrites programmatic edits, nothing is diffable, and two agents editing one script in Studio silently clobber
-each other. With `game-source/` the disk copy is the one edited, reviewed and committed; the place runs what was pushed.
+each other. With `game-source/` the disk copy is the one edited and reviewed; the place runs what was pushed.
 Joust Tycoon built its whole gameplay layer this way, with five sub-agents editing disk in parallel and one
 orchestrator pushing (`setup/templates/CONTRACTS.md` is the contract they worked to).
 
 ## sync.js
 
 - **`init`** writes `studio.json` (the `placeId` of the one place open in Studio, and `gameSource`), creates
-  `game-source/`, and adds `*.luau text eol=lf` to `.gitattributes` and `game-source/.sync/` to `.gitignore`.
+  `game-source/`.
   Then **`pull`** mirrors every script.
 - **Layout:** `game-source/<Root>/<path>/<Name>.luau` is a ModuleScript, `.server.luau` a Script, `.client.luau` a
   LocalScript. A script with children is a file plus a folder of the same name. Roots: `ServerScriptService`,

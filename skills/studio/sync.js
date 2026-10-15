@@ -2,7 +2,7 @@
 // sync.js: mirrors a place's scripts to disk and pushes disk edits back, one file at a time, over the Studio MCP bridge.
 // Run it from anywhere inside a project; it finds the project by its studio.json (made by `init`).
 //
-//   node sync.js init                      studio.json (placeId of the one open Studio), <gameSource>/, .gitattributes, .gitignore
+//   node sync.js init                      studio.json (placeId of the one open Studio), <gameSource>/
 //   node sync.js probe                     which Studios answer on 58741-58750, and the place each has open
 //   node sync.js pull [prefix]             Studio -> disk for every script under the roots, or under prefix
 //                                          (e.g. StarterPlayerScripts/Runner/Components/MyGame). A disk file with unpushed
@@ -347,12 +347,6 @@ async function init(portFlag) {
   const config = bridge.readConfig(PROJECT);
   const source = path.join(PROJECT, config.gameSource || "game-source");
   fs.mkdirSync(source, { recursive: true });
-  const attributes = path.join(PROJECT, ".gitattributes");
-  if (!fs.existsSync(attributes)) fs.writeFileSync(attributes, "*.luau text eol=lf\n");
-  const ignore = path.join(PROJECT, ".gitignore");
-  const ignoreLine = `${config.gameSource || "game-source"}/.sync/`;
-  const ignoreText = fs.existsSync(ignore) ? fs.readFileSync(ignore, "utf8") : "";
-  if (!ignoreText.split(/\r?\n/).includes(ignoreLine)) fs.writeFileSync(ignore, ignoreText + (ignoreText && !ignoreText.endsWith("\n") ? "\n" : "") + ignoreLine + "\n");
   console.log(`ready: ${path.relative(process.cwd(), source) || "."}; next: node sync.js pull`);
 }
 
