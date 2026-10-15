@@ -29,6 +29,11 @@ Rules the pipeline keeps for you:
     must therefore be deterministic run to run (use shapelib.ellipsoid / bl.sphere, never bmesh's create_uvsphere,
     and read vertex normals through bmesh);
   - empty texture space is filled by push-pull padding so far mip levels never blend black into the islands;
+  - baked ink (inklib outline(baked=True)): a part whose hulls live inside it gets a solid block per ink colour in
+    free texture space (32 texels, else 16, 8 or 4 when the atlas is full; the first block-aligned spot with 32, 16,
+    8 or 4 texels of clearance from every island), alpha 0, and every hull corner takes the block's centre as its
+    UV; island texels are untouched. A hull's UVs never vary across a triangle, so the GPU samples mip 0 and a
+    small block reads as cleanly as a big one;
   - timings per atlas land in OUT/<atlas>.timing.json.
 
 PaintCoord: a second UV layer (COORD) an asset can author to give painters exact surface coordinates (around and
@@ -64,6 +69,8 @@ PACK_SHAPE = os.environ.get("BLENDLIB_PACK_SHAPE", "AUTO")
 RECTANGULAR_ENOUGH = 0.8
 COVERED_ENOUGH = 0.5
 ATLASES = []
+INK_BLOCKS = (32, 16, 8, 4)
+INK_CLEARANCES = (32, 16, 8, 4)
 PERMUTATION = np.random.RandomState(1337).permutation(256)
 PERMUTATION = np.concatenate([PERMUTATION, PERMUTATION]).astype(np.int64)
 GRADIENTS = np.array([
@@ -272,6 +279,55 @@ def apply_modifiers(obj):
 
 def is_ink(obj):
     return bool(obj.get("ink")) or obj.get("stage_material") == "Ink"
+
+
+def _part_name(obj):
+    return bl._safe_name(obj.get("roblox_part", obj.name))
+
+
+def baked_hulls():
+    return [obj for obj in bpy.context.scene.objects if obj.type == "MESH" and obj.get("ink_baked")]
+
+
+def _free_blocks(covered, count, block):
+    # an integral image of the covered texels makes each candidate block's clearance test O(1)
+    size = covered.shape[0]
+    occupied = np.zeros((size + 1, size + 1), dtype=np.int64)
+    occupied[1:, 1:] = np.cumsum(np.cumsum(covered.astype(np.int64), axis=0), axis=1)
+    for clearance in INK_CLEARANCES:
+        found = []
+        taken = covered.copy()
+        for row in range(0, size - block + 1, block):
+            for column in range(0, size - block + 1, block):
+                low_row, low_column = max(row - clearance, 0), max(column - clearance, 0)
+                high_row, high_column = min(row + block + clearance, size), min(column + block + clearance, size)
+                inside = occupied[high_row, high_column] - occupied[low_row, high_column] - occupied[high_row, low_column] + occupied[low_row, low_column]
+                if inside == 0 and not taken[low_row:high_row, low_column:high_column].any():
+                    found.append((row, column, clearance))
+                    taken[row:row + block, column:column + block] = True
+                    if len(found) == count:
+                        return found
+    return None
+
+
+def assign_baked_ink(atlases):
+    """Give every baked hull the UV of its ink block in its own part's atlas (after the atlases are painted)."""
+    owner = {}
+    for atlas in atlases:
+        for obj in atlas.objects():
+            owner[_part_name(obj)] = atlas
+    for hull in baked_hulls():
+        atlas = owner.get(_part_name(hull))
+        if atlas is None:
+            raise RuntimeError(f"baked ink: {hull.name} is in part {_part_name(hull)}, which is not on an atlas")
+        u, v = atlas.ink_uvs[str(hull.get("solid_colour", "0B0B10"))]
+        mesh = hull.data
+        for layer in list(mesh.uv_layers):
+            mesh.uv_layers.remove(layer)
+        layer = mesh.uv_layers.new(name="UVMap")
+        layer.data.foreach_set("uv", np.tile((u, v), len(layer.data)).astype(np.float32))
+        hull["paint_atlas"] = atlas.name
+        hull["paint_image"] = atlas.path
 
 
 def _select(objects):
@@ -569,8 +625,27 @@ class Atlas:
             filled = filled | frontier
         if not filled.all():
             rgba[~filled, :3] = _push_pull(rgba[..., :3], filled)[~filled]
+        self._ink_blocks(rgba, covered)
         self.rgba = rgba
         return rgba
+
+    def _ink_blocks(self, rgba, covered):
+        parts = {_part_name(obj) for obj in self.objects()}
+        colours = sorted({str(hull.get("solid_colour", "0B0B10")) for hull in baked_hulls() if _part_name(hull) in parts})
+        self.ink_uvs = {}
+        if not colours:
+            return
+        for block in INK_BLOCKS:
+            blocks = _free_blocks(covered, len(colours), block)
+            if blocks is not None:
+                break
+        if blocks is None:
+            raise RuntimeError(f"atlas {self.name}: no free {INK_BLOCKS[-1]}x{INK_BLOCKS[-1]} block for baked ink")
+        for colour, (row, column, clearance) in zip(colours, blocks):
+            rgba[row:row + block, column:column + block, :3] = hex_rgb(colour)
+            rgba[row:row + block, column:column + block, 3] = 0.0
+            self.ink_uvs[colour] = ((column + block / 2) / self.size, (row + block / 2) / self.size)
+            self.timings[f"ink block {colour}"] = {"row": row, "column": column, "size": block, "clearance": clearance}
 
     def save(self, folder):
         os.makedirs(folder, exist_ok=True)
@@ -732,6 +807,7 @@ def build_all(folder):
         if atlas.entries:
             atlas.build(folder)
             built.append(atlas)
+    assign_baked_ink(built)
     return built
 
 

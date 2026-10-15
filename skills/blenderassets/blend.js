@@ -10,13 +10,16 @@
 //   node blend.js selftest <asset.json> --port N
 //        build every part as a preview into an UNPARENTED model, check it, destroy it: proves the import, changes nothing
 //   node blend.js push     <asset.json> --port N --place-id ID [--parent Workspace.BlenderImports] [--at x,y,z]
-//                          [--upload] [--prefix NAME] [--tint HEX]
+//                          [--upload] [--fresh] [--prefix NAME] [--tint HEX]
 //        build the asset in the place, one execute_luau call per part, as previews unless --upload. A painted
 //        (blendlib-textured/1) payload sends its textures first; --upload then makes Image and Mesh assets.
+//        A rerun of an --upload push resumes: it keeps <Name>__incoming from the same payload and uploads only the
+//        parts and textures still missing (--fresh starts over). Asset names are kept to Roblox's 50 characters.
 //        --tint sets SurfaceAppearance.Color on tinted parts (default FFFFFF: the game sets the team colour)
 //
 // Node 18+ (global fetch), no npm packages. Blender 4.1+. The Roblox side is robloxMeshTools' MeshKit, read from the
 // importmeshtools skill's vendored copy and sent with each call, so nothing is installed into the place.
+const crypto = require("crypto");
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
@@ -139,8 +142,11 @@ function renderBrushes(args) {
 // its result instead of running the code again.
 let callSerial = 0;
 
-function onceLua(code) {
-  const token = `${process.pid}-${Date.now()}-${++callSerial}`;
+function newToken() {
+  return `${process.pid}-${Date.now()}-${++callSerial}`;
+}
+
+function onceLua(code, token = newToken()) {
   return `local __token = "${token}"
 _G.BlendCalls = _G.BlendCalls or {}
 local __state = _G.BlendCalls[__token]
@@ -170,11 +176,11 @@ return __result
 `;
 }
 
-async function call(port, code, timeoutMs = 300000) {
+async function call(port, code, timeoutMs = 300000, token = undefined) {
   const response = await fetch(`http://127.0.0.1:${port}/mcp`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Accept: "application/json, text/event-stream" },
-    body: JSON.stringify({ jsonrpc: "2.0", id: Date.now(), method: "tools/call", params: { name: "execute_luau", arguments: { code: onceLua(code) } } }),
+    body: JSON.stringify({ jsonrpc: "2.0", id: Date.now(), method: "tools/call", params: { name: "execute_luau", arguments: { code: onceLua(code, token) } } }),
     signal: AbortSignal.timeout(timeoutMs),
   });
   const body = await response.text();
@@ -194,9 +200,22 @@ async function call(port, code, timeoutMs = 300000) {
   return reply;
 }
 
-async function callJson(port, code) {
-  const reply = await call(port, code);
-  return JSON.parse(reply.returnValue);
+// A long call (an upload's CreateAssetAsync) can outlast the bridge's wait for the plugin ("Studio plugin connection
+// timeout") while Studio keeps running it. Resending the same code with the same token does not run it again: the
+// repeat waits for the first run (onceLua) and returns its result, so a timed-out part is picked up, not re-uploaded.
+async function callJson(port, code, attempts = 6) {
+  const token = newToken();
+  for (let attempt = 1; ; attempt++) {
+    try {
+      const reply = await call(port, code, 300000, token);
+      return JSON.parse(reply.returnValue);
+    } catch (error) {
+      const transient = /connection timeout|timed? ?out|aborted|ECONNRESET|fetch failed/i.test(String(error && error.message));
+      if (!transient || attempt >= attempts) throw error;
+      console.log(`  (call timed out, waiting on the same run: retry ${attempt} of ${attempts - 1})`);
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+    }
+  }
 }
 
 const PROBE = `
@@ -227,9 +246,34 @@ function luaString(text) {
   return `"${text}"`;
 }
 
+// Roblox rejects an asset name over 50 characters (CreateAssetAsync returns UploadFailed), and every upload is named
+// <prefix>_<part>. The prefix gives way first, so the part name stays readable; a part name too long on its own is cut.
+const ASSET_NAME_MAX = 50;
+
+function assetName(prefix, name) {
+  const full = `${prefix}_${name}`;
+  if (full.length <= ASSET_NAME_MAX) return full;
+  const room = ASSET_NAME_MAX - name.length - 1;
+  return room >= 1 ? `${prefix.slice(0, room)}_${name}` : name.slice(0, ASSET_NAME_MAX);
+}
+
+function kitPrefix(prefix, name) {
+  return prefix.slice(0, Math.max(1, ASSET_NAME_MAX - name.length - 1));
+}
+
 function kitSource() {
   if (!fs.existsSync(MESHKIT)) throw new Error(`MeshKit not found at ${MESHKIT}; blenderassets borrows it from the importmeshtools skill`);
-  return fs.readFileSync(MESHKIT, "utf8").replace(/\r\n/g, "\n");
+  // MeshKit names its upload pfx .. "_" .. name; kitPrefix shortens pfx, and this cut covers a part name over 48.
+  return fs.readFileSync(MESHKIT, "utf8").replace(/\r\n/g, "\n")
+    .replace('Name = pfx .. "_" .. name,', `Name = string.sub(pfx .. "_" .. name, 1, ${ASSET_NAME_MAX}),`);
+}
+
+// A retried --upload push keeps <Name>__incoming and skips the parts (and painted textures) already uploaded, but only
+// when the incoming model was started from the same payload: the hash covers the meshes and the texture pixels.
+function payloadHash(payload) {
+  const hash = crypto.createHash("sha1").update(JSON.stringify(payload.meshes));
+  for (const key of Object.keys(payload.textures || {})) hash.update(key).update(fs.readFileSync(payload.textures[key].file));
+  return hash.digest("hex").slice(0, 16);
 }
 
 const SERVICES = `local HttpService = game:GetService("HttpService")
@@ -411,19 +455,46 @@ return HttpService:JSONEncode(report)
 `;
 }
 
-function prepareLua(parentPath, incoming, at) {
+function prepareLua(parentPath, incoming, at, hash, resume) {
   return `${SERVICES}
 local parent = resolve(${luaString(parentPath)}, true)
 local stale = parent:FindFirstChild(${luaString(incoming)})
+if stale and ${resume ? "true" : "false"} and stale:GetAttribute("PayloadHash") == ${luaString(hash)} then
+	local done, textures = {}, {}
+	for _, part in stale:GetChildren() do
+		if part:IsA("MeshPart") and part:GetAttribute("MeshAssetId") then
+			table.insert(done, part.Name)
+		end
+	end
+	local folder = stale:FindFirstChild("__Textures")
+	for _, holder in (if folder then folder:GetChildren() else {}) do
+		if holder:GetAttribute("ImageAssetId") then
+			table.insert(textures, holder.Name)
+		end
+	end
+	stale.WorldPivot = CFrame.new(${at.join(", ")})
+	return HttpService:JSONEncode({ resumed = true, done = done, textures = textures })
+end
 if stale then
 	stale:Destroy()
 end
 local model = Instance.new("Model")
 model.Name = ${luaString(incoming)}
 model.WorldPivot = CFrame.new(${at.join(", ")})
+model:SetAttribute("PayloadHash", ${luaString(hash)})
 model.Parent = parent
-return model:GetFullName()
+return HttpService:JSONEncode({ resumed = false, done = {}, textures = {} })
 `;
+}
+
+async function prepare(port, payload, parentPath, incoming, at, upload, fresh) {
+  const result = await callJson(port, prepareLua(parentPath, incoming, at, payloadHash(payload), upload && !fresh));
+  const done = new Set(result.done || []);
+  const textures = new Set(result.textures || []);
+  if (result.resumed) {
+    console.log(`  resume: ${done.size} part${done.size === 1 ? "" : "s"}${textures.size ? ` and ${textures.size} texture${textures.size === 1 ? "" : "s"}` : ""} already uploaded in ${incoming} (--fresh starts over)`);
+  }
+  return { done, textures };
 }
 
 function meshLua(parentPath, incoming, at, mesh, quantum, upload, prefix) {
@@ -439,7 +510,7 @@ if not model then
 	model.Parent = parent
 	recreated = true
 end
-local part = buildMesh(mesh, ${quantum}, { preview = ${upload ? "false" : "true"}, parent = model, origin = CFrame.new(${at.join(", ")}), prefix = ${luaString(prefix)} })
+local part = buildMesh(mesh, ${quantum}, { preview = ${upload ? "false" : "true"}, parent = model, origin = CFrame.new(${at.join(", ")}), prefix = ${luaString(kitPrefix(prefix, mesh.name))} })
 return HttpService:JSONEncode({ name = part.Name, triangles = part:GetAttribute("Triangles"), assetId = part:GetAttribute("MeshAssetId"), recreated = recreated })
 `;
 }
@@ -482,6 +553,7 @@ ${socketCheckLua(socketCount)}	if report.ok then
 		incoming.WorldPivot = CFrame.new(${at.join(", ")})
 		incoming:SetAttribute("BlenderSource", ${luaString(source)})
 		incoming:SetAttribute("Triangles", ${total})
+		incoming:SetAttribute("PayloadHash", nil)
 		report.path = incoming:GetFullName()
 	end
 end
@@ -518,7 +590,7 @@ local function decodeBase64(text, byteCount)
 end
 
 local function uploadRequest(name, description)
-	local request = { Name = name, Description = description }
+	local request = { Name = string.sub(name, 1, ${ASSET_NAME_MAX}), Description = description }
 	if game.CreatorType == Enum.CreatorType.Group then
 		request.CreatorId = game.CreatorId
 		request.CreatorType = Enum.AssetCreatorType.Group
@@ -564,7 +636,7 @@ end
 image:WritePixelsBuffer(Vector2.new(0, ${row}), Vector2.new(${width}, ${rows}), decodeBase64(${embedText(data)}, ${width * rows * 4}))
 local assetId = nil
 if ${last && upload ? "true" : "false"} then
-	local result, id = AssetService:CreateAssetAsync(image, Enum.AssetType.Image, uploadRequest(${luaString(`${prefix}_${key}`)}, ${luaString(`${prefix}, generated painted texture`)}))
+	local result, id = AssetService:CreateAssetAsync(image, Enum.AssetType.Image, uploadRequest(${luaString(assetName(prefix, key))},${luaString(`${prefix}, generated painted texture`)}))
 	if result ~= Enum.CreateAssetResult.Success or not id then
 		error("CreateAssetAsync image ${key}: " .. tostring(result))
 	end
@@ -646,7 +718,7 @@ if existing then
 end
 local part
 if ${upload ? "true" : "false"} then
-	local result, assetId = AssetService:CreateAssetAsync(editable, Enum.AssetType.Mesh, uploadRequest(${luaString(prefix)} .. "_" .. mesh.name, ${luaString(`${prefix}, generated painted mesh`)}))
+	local result, assetId = AssetService:CreateAssetAsync(editable, Enum.AssetType.Mesh, uploadRequest(${luaString(assetName(prefix, mesh.name))},${luaString(`${prefix}, generated painted mesh`)}))
 	editable:Destroy()
 	if result ~= Enum.CreateAssetResult.Success or not assetId then
 		error("CreateAssetAsync mesh " .. mesh.name .. ": " .. tostring(result))
@@ -742,6 +814,7 @@ ${socketCheckLua(socketCount)}	if report.ok then
 		incoming.WorldPivot = CFrame.new(${at.join(", ")})
 		incoming:SetAttribute("BlenderSource", ${luaString(source)})
 		incoming:SetAttribute("Triangles", ${total})
+		incoming:SetAttribute("PayloadHash", nil)
 		report.path = incoming:GetFullName()
 	end
 end
@@ -751,12 +824,13 @@ return HttpService:JSONEncode(report)
 
 // Part attributes and sockets travel in the payload, because a push replaces the whole model: anything added in
 // Studio afterwards would be lost on the next push. One call, after the parts exist and before verification.
-function socketsLua(parentPath, incoming, at, meshes, sockets) {
+function socketsLua(parentPath, incoming, at, meshes, sockets, modelAttributes = {}) {
   const attributes = {};
   for (const mesh of meshes) if (mesh.attributes && Object.keys(mesh.attributes).length) attributes[mesh.name] = mesh.attributes;
   return `${SERVICES}
 local attributes = ${embed(attributes)}
 local sockets = ${embed(sockets)}
+local modelAttributes = ${embed(modelAttributes)}
 local parent = resolve(${luaString(parentPath)}, false)
 local model = parent and parent:FindFirstChild(${luaString(incoming)})
 if not model then
@@ -765,6 +839,9 @@ end
 local origin = Vector3.new(${at.join(", ")})
 local function vector(values)
 	return Vector3.new(values[1], values[2], values[3])
+end
+for key, value in modelAttributes do
+	model:SetAttribute(key, value)
 end
 local tagged = 0
 for partName, values in attributes do
@@ -825,20 +902,22 @@ function socketCheckLua(count) {
 async function pushExtras(payload, port, parentPath, incoming, at) {
   const sockets = payload.sockets || [];
   const hasAttributes = payload.meshes.some((mesh) => mesh.attributes && Object.keys(mesh.attributes).length);
-  if (!sockets.length && !hasAttributes) return 0;
+  const modelAttributes = payload.attributes || {};
+  if (!sockets.length && !hasAttributes && !Object.keys(modelAttributes).length) return 0;
   for (const socket of sockets) if (!/^[A-Za-z0-9_]+$/.test(socket.name)) throw new Error(`unsafe socket name ${socket.name}`);
-  const result = await callJson(port, socketsLua(parentPath, incoming, at, payload.meshes, sockets));
+  const result = await callJson(port, socketsLua(parentPath, incoming, at, payload.meshes, sockets, modelAttributes));
   console.log(`  sockets ${result.sockets}, attributes on ${result.tagged} part${result.tagged === 1 ? "" : "s"}`);
   return sockets.length;
 }
 
-async function pushTextured(payload, port, parentPath, at, upload, prefix, tint) {
+async function pushTextured(payload, port, parentPath, at, upload, prefix, tint, fresh) {
   const incoming = `${payload.name}__incoming`;
   const keys = Object.keys(payload.textures);
   console.log(`push ${payload.name} (painted, ${keys.length} texture${keys.length === 1 ? "" : "s"}) -> ${parentPath}.${payload.name} at (${at.join(", ")}), ${upload ? "UPLOAD" : "preview"}`);
-  await call(port, prepareLua(parentPath, incoming, at));
+  const { done, textures } = await prepare(port, payload, parentPath, incoming, at, upload, fresh);
   for (const key of keys) {
     if (!/^[A-Za-z0-9_]+$/.test(key)) throw new Error(`unsafe texture name ${key}`);
+    if (textures.has(key)) continue;
     const texture = payload.textures[key];
     const raw = fs.readFileSync(texture.file);
     const { width, height } = texture;
@@ -853,6 +932,7 @@ async function pushTextured(payload, port, parentPath, at, upload, prefix, tint)
     console.log(`  texture ${key}: ${width}x${height}${assetId ? ", image asset " + assetId : ""}`);
   }
   for (const mesh of payload.meshes) {
+    if (done.has(mesh.name)) continue;
     const result = await callJson(port, texturedMeshLua(parentPath, incoming, at, mesh, payload.quantum, payload.uvQuantum, upload, prefix, tint));
     console.log(`  ${result.name}: ${result.triangles} triangles${mesh.texture ? ", " + mesh.texture : ", solid " + mesh.colour}${mesh.tint ? " (tinted)" : ""}${result.assetId ? ", mesh asset " + result.assetId : ""}`);
   }
@@ -933,18 +1013,20 @@ async function push(args) {
   if (!/^[A-Za-z0-9_]+(\.[A-Za-z0-9_]+)*$/.test(parentPath)) throw new Error(`--parent wants a dotted path like Workspace.BlenderImports, got ${parentPath}`);
   const at = parseAt(args.at);
   const upload = args.upload === true;
-  const prefix = typeof args.prefix === "string" ? args.prefix : payload.name;
+  const fresh = args.fresh === true;
+  const prefix =typeof args.prefix === "string" ? args.prefix : payload.name;
   if (!/^[A-Za-z0-9_]+$/.test(prefix)) throw new Error(`--prefix wants letters, digits and underscores, got ${prefix}`);
   if (payload.format === "blendlib-textured/1") {
     const tint = typeof args.tint === "string" ? args.tint.replace(/^#/, "") : "FFFFFF";
     if (!/^[0-9A-Fa-f]{6}$/.test(tint)) throw new Error(`--tint wants a hex colour like 1E5BD8, got ${args.tint}`);
-    return pushTextured(payload, port, parentPath, at, upload, prefix, tint);
+    return pushTextured(payload, port, parentPath, at, upload, prefix, tint, fresh);
   }
   const incoming = `${payload.name}__incoming`;
 
   console.log(`push ${payload.name} -> ${parentPath}.${payload.name} at (${at.join(", ")}), ${upload ? "UPLOAD" : "preview"}`);
-  await call(port, prepareLua(parentPath, incoming, at));
+  const { done } = await prepare(port, payload, parentPath, incoming, at, upload, fresh);
   for (const mesh of payload.meshes) {
+    if (done.has(mesh.name)) continue;
     const result = await callJson(port, meshLua(parentPath, incoming, at, mesh, payload.quantum, upload, prefix));
     console.log(`  ${result.name}: ${result.triangles} triangles${result.assetId ? ", asset " + result.assetId : ""}${result.recreated ? "  (model was missing, recreated)" : ""}`);
   }

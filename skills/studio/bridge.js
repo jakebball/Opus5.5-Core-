@@ -10,9 +10,10 @@
 //     delivery waits for the first run and returns its result instead of running the code again.
 //   - deferred(): for runs longer than the bridge's ~30 s call timeout. The code starts inside task.defer under a token
 //     and is polled until it finishes, so long builds complete and report and never start twice.
-//   - a playtest guard: writers refuse while a playtest runs.
+//   - a playtest guard: writers refuse while a playtest runs (read from Studio's session log, see studioLog.js).
 const fs = require("fs");
 const path = require("path");
+const studioLog = require(path.join(__dirname, "studioLog.js"));
 
 const PORTS = Array.from({ length: 10 }, (_, index) => 58741 + index);
 let serial = 0;
@@ -134,8 +135,26 @@ async function resolve({ port, placeId, writes = false } = {}) {
     place = matching[0];
   }
   if (placeId && String(place.placeId) !== String(placeId)) throw new Error(`port ${place.port} has placeId ${place.placeId} ("${place.name}") open, not ${placeId}; refusing`);
-  if (writes && place.running) throw new Error("a playtest is running; stop it first (writes go to the Edit datamodel)");
+  if (writes) await refuseDuringPlay(place);
   return place;
+}
+
+// The Edit DataModel's RunService:IsRunning() is false while a Play session runs (Play has its own DataModels), so the
+// playtest guard reads Studio's session log instead (studioLog.js). If the log cannot be read the guard says so on
+// stderr and lets the write through, as before.
+async function refuseDuringPlay(place) {
+  if (place.running) throw new Error("a playtest is running; stop it first (writes go to the Edit datamodel)");
+  let state;
+  try {
+    const file = await studioLog.findLog({ port: place.port, run: (code) => rawCall(place.port, code, 10000) });
+    state = studioLog.playState(file);
+  } catch (error) {
+    console.error(`bridge: playtest check skipped (${error.message})`);
+    return;
+  }
+  if (state.running) {
+    throw new Error(`a playtest is ${state.phase === "stopping" ? "stopping" : "running"} (Studio log: ${state.phase} at ${new Date(state.at).toISOString()}); stop it first (writes go to the Edit datamodel)`);
+  }
 }
 
 function sleep(milliseconds) {
@@ -193,4 +212,4 @@ function takeFlag(argv, name, hasValue = true) {
   return value;
 }
 
-module.exports = { PORTS, longString, onceLua, rawCall, once, probe, resolve, deferred, findProjectRoot, readConfig, takeFlag };
+module.exports = { PORTS, longString, onceLua, rawCall, once, probe, resolve, refuseDuringPlay, deferred, findProjectRoot, readConfig, takeFlag };

@@ -196,6 +196,17 @@ the flashes, cropped, scaled to ≤ 1280 wide and encoded H.264 under 24 MB with
 raw desktop recording is deleted (unless `--keep-raw`) and never sent. Claude never calls `start_playtest` itself
 (the maintainer's settings deny it); `/demo` is the sanctioned path, used only on the user's request.
 
+### `/perfbudget`
+`perf.js survey` refreshes the triangle table in Edit (`perf-source/meshtris.json`: `LodTris0/1/2` / `Triangles` attributes,
+else an EditableMesh count), installs `PerfSurvey.luau` with the route baked in as `StarterPlayerScripts.__PerfSurvey` plus a
+server director `__PerfSurveyServer`, and starts a playtest. The survey teleports to each stop in
+`perf-source/route.json`, holds a chase camera at eight headings, and prints `[perf:<id>:*]` lines that `perf.js` reads
+from Studio's session log. Triangles are exact per visible mesh (shadow pass included); draw calls are estimated per
+instancing group, see-through part and shadow group, so the result is an upper bound with a stable bias. The director
+ends the test with `StudioTestService:EndTest`; `perf.js` waits for `StopPlaySoloEnd`, falls back to `stop_playtest`, and
+removes both scripts whatever happened (`studio/playtest.js`, shared with `/demo`). Runs land in `perf-source/runs/`;
+`report --vs` compares two against the `budget`. The second sanctioned playtest path, used only on the user's request.
+
 ### `/itemicon`
 `icon.js` runs `shot.js --icon <2×size>`, then `finish.py` (PIL: trim alpha, pad square, dilate + blur an outline,
 LANCZOS down). `--upload` writes 128-row base64 chunks into an EditableImage and `CreateAssetAsync`s an Image; the id is

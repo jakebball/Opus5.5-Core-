@@ -218,6 +218,17 @@ def sockets_payload():
     return entries
 
 
+def model_attributes(values=None):
+    """Attributes on the pushed Model itself (not its MeshParts). Kept on the scene, so reset() clears them; push sets
+    them on the model after verification, beside BlenderSource and Triangles. Returns the merged set."""
+    scene = bpy.context.scene
+    merged = json.loads(scene.get("roblox_model_attributes", "{}"))
+    if values:
+        merged.update(values)
+        scene["roblox_model_attributes"] = json.dumps(merged)
+    return merged
+
+
 def part_attributes(objects):
     merged = {}
     for obj in objects:
@@ -705,6 +716,7 @@ def export(path, name, report=None):
         "triangles": sum(entry["triangles"] for entry in meshes),
         "meshes": meshes,
         "sockets": sockets_payload(),
+        "attributes": model_attributes(),
     }
     with open(path, "w", encoding="utf-8") as handle:
         json.dump(payload, handle, separators=(",", ":"))
@@ -719,6 +731,12 @@ def finish(name, budget=None, sheet=True):
     notes = _bake_geometry()
     report = check(budget)
     report["warnings"] = notes + report["warnings"]
+    if os.environ.get("BLENDLIB_ZFIGHT", "1") != "0":
+        try:
+            import zfight
+            report["warnings"] += zfight.warnings(OUT)
+        except Exception as error:  # the check must never break a build
+            report["warnings"].append(f"z-fighting check failed: {error}")
     report["name"] = name
     report["blender"] = bpy.app.version_string
     if atlases:

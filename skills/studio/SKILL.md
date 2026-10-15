@@ -78,6 +78,12 @@ Runs Luau files in Studio so that **a script on disk is the source of truth for 
 ambiguity and, for writers, a running playtest; `once(port, code)` runs short code exactly once; `deferred(port, code)`
 runs long code exactly once; `longString(text)` embeds any text safely in Luau.
 
+The playtest guard reads Studio's own session log (`studioLog.js`: `%LOCALAPPDATA%\Roblox\logs\*_Studio_*_last.log`,
+lifecycle markers from `initiatePlaySolo` to `StopPlaySoloEnd`), because the Edit DataModel's `RunService:IsRunning()`
+is false during Play. The same log carries every client and server print, which the MCP's `get_playtest_output` never
+sees; `playtest.js` (start, follow, end a test from inside the game, `ensureStopped`) builds on it for `/demo` and
+`/perfbudget`.
+
 ## Studio MCP rules (learned across the team's projects)
 
 1. **Every call can be delivered more than once.** The bridge re-hands a still-running call to the plugin every 0.5 s.
@@ -100,7 +106,7 @@ runs long code exactly once; `longString(text)` embeds any text safely in Luau.
 10. **`Destroy` through `execute_luau` cannot be undone with Ctrl+Z.** Snapshot first (clone into `ServerStorage`)
     when destroying anything not regenerated from disk.
 11. **The MCP cannot read a live playtest.** Instrument with `print`s and ask the user to paste the Output; never start
-    or stop a playtest yourself.
+    or stop a playtest yourself, except through `/demo` or `/perfbudget` when the user asks for one.
 12. **Uploads:** `AssetService:CreateAssetAsync` returns the result enum first, then the id; read the id back from the
     instance; asset names over 50 characters fail; an Animation whose creator is not the place's owner (user or group)
     silently never loads.

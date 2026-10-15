@@ -29,6 +29,12 @@ async function pickPort(options) {
 }
 
 const VIEWS = ["persp", "persp-back", "persp-right", "persp-back-right", "front", "back", "left", "right", "top", "bottom"];
+const CLIP_VIEWS = ["side", "left", "chase", "chase-right", "front", "front-right", "back", "top"];
+const CLIP_LAYOUTS = ["stack", "row", "separate"];
+const CLIP_ENGINES = ["eevee", "cycles"];
+const CLIP_DEFAULT_VIEWS = ["side", "chase"];
+const CLIP_SECONDS = 6;
+const CLIP_HOLD_SECONDS = 0.4;
 const FORWARDS = ["-z", "+z", "-x", "+x"];
 const DEFAULT_POSE = `local options = { label = ARGS.label, views = ARGS.views, focus = ARGS.focus, forward = ARGS.forward }
 if ARGS.frame then
@@ -41,6 +47,73 @@ elseif ARGS.camera then
 	options.fov = ARGS.fov
 end
 shot.snap(options)`;
+// Clip mode without --pose: clone each target 4,000 studs up, play every --clip on its copy, record the clip.
+const DEFAULT_CLIP_POSE = `local LIFT = Vector3.new(0, 4000, 0)
+local function counterpart(instance, original, copy)
+	if instance == original then
+		return copy
+	end
+	local names = {}
+	local current = instance
+	while current and current ~= original do
+		table.insert(names, 1, current.Name)
+		current = current.Parent
+	end
+	if current ~= original then
+		return nil
+	end
+	local found = copy
+	for _, name in names do
+		found = found and found:FindFirstChild(name)
+	end
+	return found
+end
+local originals = table.clone(shot.targets)
+for _, clip in ARGS.clips do
+	local owner = shot.find(clip.owner)
+	local inside = false
+	for _, original in originals do
+		if owner == original or owner:IsDescendantOf(original) then
+			inside = true
+			break
+		end
+	end
+	if not inside then
+		table.insert(originals, if owner:IsA("Model") or owner:IsA("BasePart") then owner else owner:FindFirstAncestorWhichIsA("Model") or owner)
+	end
+end
+local copies = {}
+for index, original in originals do
+	local copy = original:Clone()
+	if not copy then
+		error(original:GetFullName() .. " cannot be cloned (Archivable is off)", 0)
+	end
+	shot.temporary(copy)
+	copy.Parent = workspace
+	if copy:IsA("Model") then
+		copy:PivotTo(original:GetPivot() + LIFT)
+	elseif copy:IsA("BasePart") then
+		copy.CFrame = original.CFrame + LIFT
+	end
+	copies[index] = copy
+end
+local function copyOf(instance)
+	for index, original in originals do
+		local found = counterpart(instance, original, copies[index])
+		if found then
+			return found
+		end
+	end
+	error("clip: no copy of " .. instance:GetFullName(), 0)
+end
+local tracks = {}
+for _, clip in ARGS.clips do
+	local owner = copyOf(shot.find(clip.owner))
+	for _, animation in clip.animations do
+		table.insert(tracks, { animator = owner, animation = animation })
+	end
+end
+shot.clip({ label = ARGS.label, targets = copies, tracks = tracks, root = if ARGS.root then copyOf(shot.find(ARGS.root)) else nil })`;
 
 const USAGE = `usage: node shot.js <instance path...> [options]
 
@@ -70,10 +143,28 @@ Renders Studio instances offline in headless Blender. Studio's camera is never t
   --port N             Studio MCP port (default: found by /studio's bridge, else ${DEFAULT_PORT} or STUDIO_PORT)
   --place-id ID        only use a Studio with this place open (default: the project's studio.json)
   --blender PATH       Blender 4.1+ (default: newest under Program Files\\Blender Foundation, or BLENDER)
-  --keep               keep scene.json and the preview textures beside the sheet`;
+  --keep               keep scene.json and the preview textures beside the sheet (clip mode: and the frames)
+
+Clip mode (an MP4 of an animation, sampled on a private copy in Edit, rendered frame by frame):
+  --clip RIG=ANIM[,ANIM]  play ANIM (a KeyframeSequence or Animation path, or rbxassetid://N) on the Animator in RIG;
+                       repeat for each rig. RIG may sit inside a target: pass the model that holds joined rigs
+                       (a rider welded to a horse) as the target so they are copied together. A --pose script may
+                       call shot.clip{...} itself instead
+  --views a,b          clip cameras: ${CLIP_VIEWS.join(", ")} (default ${CLIP_DEFAULT_VIEWS.join(",")})
+  --fps N              frames per second sampled and encoded (default 30)
+  --loops N            how many times the clip plays in the video (default: about ${CLIP_SECONDS} s worth)
+  --size WxH           each view's size (default 1280x720)
+  --layout L           ${CLIP_LAYOUTS.join(", ")}: views stacked in one video (default), side by side, or one video each
+  --travel T           auto (move forward at the clip's GroundSpeed attribute, default), off (in place) or studs/s
+  --track on|off       cameras follow the travel (default on); off holds them still while the rig crosses
+  --ground G           grid (checker, default), plain or off; --grid N sets the checker size (default 2 studs)
+  --engine E           ${CLIP_ENGINES.join(", ")} (default eevee); --samples N per frame (eevee 16, cycles 8)
+  --fov N              clip cameras' vertical field of view (default 30)
+  --root PATH          the part travel and cameras follow (default: the first target's PrimaryPart)
+  --no-label           no clip, view and time stamp on the frames`;
 
 function parse(argv) {
-  const options = { targets: [], args: {}, focus: [] };
+  const options = { targets: [], args: {}, focus: [], clips: [] };
   for (let index = 0; index < argv.length; index++) {
     const item = argv[index];
     if (!item.startsWith("--")) {
@@ -124,10 +215,52 @@ function parse(argv) {
       case "blender": options.blender = value(); break;
       case "keep": options.keep = true; break;
       case "help": options.help = true; break;
+      case "clip": {
+        const spec = value();
+        const split = spec.indexOf("=");
+        const animations = split > 0 ? spec.slice(split + 1).split(",").map((entry) => entry.trim()).filter(Boolean) : [];
+        if (split < 1 || !animations.length) throw new Error(`--clip wants <rig path>=<animation>[,<animation>], got ${spec}`);
+        options.clips.push({ owner: spec.slice(0, split), animations });
+        break;
+      }
+      case "fps": options.fps = Number(value()); break;
+      case "loops": options.loops = Number(value()); break;
+      case "size": {
+        const match = /^(\d+)x(\d+)$/i.exec(value());
+        if (!match) throw new Error("--size wants WIDTHxHEIGHT, e.g. 1280x720");
+        options.size = [Number(match[1]), Number(match[2])];
+        break;
+      }
+      case "layout": options.layout = value(); break;
+      case "travel": options.travel = value(); break;
+      case "track": options.track = value(); break;
+      case "ground": options.ground = value(); break;
+      case "grid": options.grid = Number(value()); break;
+      case "engine": options.engine = value(); break;
+      case "root": options.root = value(); break;
+      case "no-label": options.noLabel = true; break;
       default: throw new Error(`unknown option --${flag}\n\n${USAGE}`);
     }
   }
-  for (const view of options.views || []) if (!VIEWS.includes(view)) throw new Error(`unknown view ${view}; use ${VIEWS.join(", ")}`);
+  // a pose script may record clips with its own camera names, so only its names' spelling is checked here
+  for (const view of options.views || []) {
+    if (options.pose) {
+      if (!/^[A-Za-z0-9_-]+$/.test(view)) throw new Error(`unknown view ${view}`);
+    } else if (options.clips.length) {
+      if (!CLIP_VIEWS.includes(view)) throw new Error(`unknown clip view ${view}; use ${CLIP_VIEWS.join(", ")}`);
+    } else if (!VIEWS.includes(view)) {
+      throw new Error(`unknown view ${view}; use ${VIEWS.join(", ")}`);
+    }
+  }
+  if (options.fps !== undefined && !(options.fps >= 1 && options.fps <= 120)) throw new Error("--fps wants a number from 1 to 120");
+  if (options.loops !== undefined && !(Number.isInteger(options.loops) && options.loops >= 1 && options.loops <= 200)) throw new Error("--loops wants a whole number from 1 to 200");
+  if (options.size && !(options.size[0] >= 64 && options.size[1] >= 64 && options.size[0] <= 3840 && options.size[1] <= 2160)) throw new Error("--size wants 64x64 to 3840x2160");
+  if (options.layout && !CLIP_LAYOUTS.includes(options.layout)) throw new Error(`--layout wants one of ${CLIP_LAYOUTS.join(", ")}`);
+  if (options.travel !== undefined && !["auto", "off"].includes(options.travel) && !(Number(options.travel) >= 0)) throw new Error("--travel wants auto, off or a speed in studs/s");
+  if (options.track !== undefined && !["on", "off"].includes(options.track)) throw new Error("--track wants on or off");
+  if (options.ground !== undefined && !["grid", "plain", "off"].includes(options.ground)) throw new Error("--ground wants grid, plain or off");
+  if (options.grid !== undefined && !(options.grid > 0.05)) throw new Error("--grid wants a checker size in studs");
+  if (options.engine !== undefined && !CLIP_ENGINES.includes(options.engine)) throw new Error(`--engine wants one of ${CLIP_ENGINES.join(", ")}`);
   if (options.forward && !FORWARDS.includes(options.forward)) throw new Error(`--forward wants one of ${FORWARDS.join(", ")}`);
   for (const point of options.focus) if (point.length < 3 || point.some((value) => !Number.isFinite(value))) throw new Error("--focus wants x,y,z[,radius[,dx,dy,dz]]");
   if (options.view && options.view !== "studio") throw new Error("--view only takes studio");
@@ -430,15 +563,88 @@ function summarise(map, limit) {
     .map(([key, value]) => `${key}: ${String(value).slice(0, 140)}`);
 }
 
+function findFfmpeg() {
+  if (process.env.FFMPEG && fs.existsSync(process.env.FFMPEG)) return process.env.FFMPEG;
+  const onPath = spawnSync(process.platform === "win32" ? "where" : "which", ["ffmpeg"], { encoding: "utf8" });
+  const first = onPath.status === 0 ? onPath.stdout.split(/\r?\n/)[0].trim() : "";
+  if (first) return first;
+  const local = process.env.LOCALAPPDATA || "";
+  const link = path.join(local, "Microsoft", "WinGet", "Links", "ffmpeg.exe");
+  if (fs.existsSync(link)) return link;
+  const packages = path.join(local, "Microsoft", "WinGet", "Packages");
+  if (fs.existsSync(packages)) {
+    for (const folder of fs.readdirSync(packages).filter((name) => name.startsWith("Gyan.FFmpeg"))) {
+      for (const build of fs.readdirSync(path.join(packages, folder))) {
+        const candidate = path.join(packages, folder, build, "bin", "ffmpeg.exe");
+        if (fs.existsSync(candidate)) return candidate;
+      }
+    }
+  }
+  throw new Error("ffmpeg not found: install it (winget install Gyan.FFmpeg) or set FFMPEG to ffmpeg.exe");
+}
+
+function ffmpegRun(ffmpeg, args) {
+  const result = spawnSync(ffmpeg, ["-hide_banner", "-loglevel", "error", "-y", ...args], { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
+  if (result.status !== 0) throw new Error(`ffmpeg failed: ${String(result.stderr || result.error).slice(-800)}`);
+}
+
+function frameFile(dir, index) {
+  return path.join(dir, `${String(index).padStart(4, "0")}.jpg`);
+}
+
+// One clip's frames -> phone-ready H.264 (yuv420p, faststart), views stacked or side by side. One play is encoded and
+// then repeated `plays` times by stream copy, so the loops cost nothing to encode; a one-shot clip holds its last frame
+// a moment before it starts again.
+function encodeClip(ffmpeg, clip, layout, outDir) {
+  const fps = clip.fps;
+  const frames = clip.rendered;
+  const plays = clip.loopsRendered > 1 ? 1 : clip.loops;
+  const hold = !clip.loop && plays > 1 ? Math.round(CLIP_HOLD_SECONDS * fps) : 0;
+  for (const view of clip.views) for (let index = 0; index < hold; index++) fs.copyFileSync(frameFile(view.dir, frames - 1), frameFile(view.dir, frames + index));
+  const input = (view) => ["-framerate", String(fps), "-start_number", "0", "-i", path.join(view.dir, "%04d.jpg")];
+  const base = slug(clip.label);
+  const joined = layout !== "separate" && clip.views.length > 1;
+  const width = joined && layout === "row" ? clip.size[0] * clip.views.length : clip.size[0];
+  const height = joined && layout === "stack" ? clip.size[1] * clip.views.length : clip.size[1];
+  // the lowest H.264 level the frame size allows (macroblocks a frame), so older phones still play it
+  const macroblocks = Math.ceil(width / 16) * Math.ceil(height / 16);
+  const level = macroblocks <= 8192 ? ["-level:v", "4.1"] : macroblocks <= 22080 ? ["-level:v", "5.1"] : [];
+  const encode = ["-c:v", "libx264", "-preset", "medium", "-crf", "22", "-profile:v", "high", ...level, "-pix_fmt", "yuv420p", "-color_range", "tv", "-colorspace", "bt709", "-color_primaries", "bt709", "-color_trc", "bt709", "-maxrate", "6M", "-bufsize", "12M", "-movflags", "+faststart", "-r", String(fps), "-an"];
+  const limited = "scale=out_range=tv:out_color_matrix=bt709,format=yuv420p";
+  const jobs = joined
+    ? [{ file: `${base}.mp4`, args: [...clip.views.flatMap(input), "-filter_complex", `${clip.views.map((_, index) => `[${index}:v]`).join("")}${layout === "row" ? "hstack" : "vstack"}=inputs=${clip.views.length},${limited}[video]`, "-map", "[video]"] }]
+    : clip.views.map((view) => ({ file: clip.views.length === 1 ? `${base}.mp4` : `${base}_${slug(view.name)}.mp4`, args: [...input(view), "-vf", limited] }));
+  const picks = [...new Set(Array.from({ length: 8 }, (_, index) => Math.round((index * (frames - 1)) / 7)))];
+  const strip = path.join(outDir, `${base}_strip.png`);
+  const outputs = [];
+  for (const job of jobs) {
+    const file = path.join(outDir, job.file);
+    const once = plays > 1 ? file.replace(/\.mp4$/i, ".once.mp4") : file;
+    ffmpegRun(ffmpeg, [...job.args, ...encode, once]);
+    if (!outputs.length) ffmpegRun(ffmpeg, ["-i", once, "-vf", `select='${picks.map((frame) => `eq(n\\,${frame})`).join("+")}',scale=480:-2,tile=4x${Math.ceil(picks.length / 4)}`, "-frames:v", "1", "-fps_mode", "vfr", strip]);
+    if (plays > 1) {
+      const list = file.replace(/\.mp4$/i, ".concat.txt");
+      fs.writeFileSync(list, Array.from({ length: plays }, () => `file '${path.basename(once)}'`).join("\n"));
+      ffmpegRun(ffmpeg, ["-f", "concat", "-safe", "0", "-i", list, "-c", "copy", "-movflags", "+faststart", file]);
+      fs.rmSync(list, { force: true });
+      fs.rmSync(once, { force: true });
+    }
+    outputs.push(file);
+  }
+  return { outputs, strip, plays, hold, seconds: (plays * (frames + hold)) / fps, width, height, picks };
+}
+
 async function main(argv, log = console.log) {
   const options = parse(argv);
   if (options.help) {
     log(USAGE);
     return null;
   }
-  if (!options.targets.length && !options.pose) throw new Error(`give at least one instance path, or --pose\n\n${USAGE}`);
+  if (!options.targets.length && !options.pose && !options.clips.length) throw new Error(`give at least one instance path, --clip or --pose\n\n${USAGE}`);
+  const started = Date.now();
   const port = await pickPort(options);
-  const name = slug(options.name || (options.targets[0] ? options.targets[0].split(".").pop() : path.basename(options.pose, path.extname(options.pose))));
+  const firstName = options.targets[0] || (options.clips[0] && options.clips[0].owner);
+  const name = slug(options.name || (firstName ? firstName.split(".").pop() : path.basename(options.pose, path.extname(options.pose))));
   const outDir = path.resolve(options.out || path.join(os.tmpdir(), "assetshot", `${name}-${Date.now().toString(36)}`));
   fs.mkdirSync(outDir, { recursive: true });
   const imageLimit = options.imageLimit || IMAGE_LIMIT;
@@ -456,22 +662,40 @@ async function main(argv, log = console.log) {
     label: options.label,
     imageLimit,
     known: knownCache(imageCache),
+    clips: options.clips.length ? options.clips : undefined,
+    fps: options.fps,
+    root: options.root,
   };
-  const pose = options.pose ? fs.readFileSync(path.resolve(options.pose), "utf8").replace(/\r\n/g, "\n") : DEFAULT_POSE;
+  const pose = options.pose ? fs.readFileSync(path.resolve(options.pose), "utf8").replace(/\r\n/g, "\n") : options.clips.length ? DEFAULT_CLIP_POSE : DEFAULT_POSE;
   const exportStarted = Date.now();
   const payload = await exportScene(port, args, pose, log);
   const exportSeconds = (Date.now() - exportStarted) / 1000;
   const merged = mergeCaches(payload, imageCache, outDir);
+  const clips = payload.clips || [];
+  for (const clip of clips) clip.loops = options.loops || (clip.loop ? Math.max(2, Math.ceil(CLIP_SECONDS / Math.max(clip.duration, 0.05))) : 2);
+  const clipSettings = {
+    views: options.views && options.views.length ? options.views : CLIP_DEFAULT_VIEWS,
+    size: options.size || [1280, 720],
+    travel: options.travel === undefined || options.travel === "auto" || options.travel === "off" ? options.travel || "auto" : Number(options.travel),
+    track: options.track !== "off",
+    ground: options.ground || "grid",
+    grid: options.grid || 2,
+    engine: options.engine || "eevee",
+    samples: options.samples,
+    fov: options.fov || 30,
+    labels: !options.noLabel,
+  };
   const scene = {
     version: 1,
     name,
     lighting: payload.lighting,
     parts: payload.parts,
     frames: payload.frames,
+    clips: clips.length ? clips : undefined,
     meshes: merged.meshes,
     images: merged.images,
     failedMeshes: merged.failedMeshes,
-    options: { samples: options.samples || 24, forward: options.forward || "-z", icon: options.icon },
+    options: { samples: options.samples || 24, forward: options.forward || "-z", icon: options.icon, clip: clips.length ? clipSettings : undefined },
   };
   const scenePath = path.join(outDir, "scene.json");
   fs.writeFileSync(scenePath, JSON.stringify(scene));
@@ -483,11 +707,32 @@ async function main(argv, log = console.log) {
     fs.rmSync(scenePath, { force: true });
     for (const file of merged.scratch) fs.rmSync(file, { force: true });
   }
-  log(`sheet    ${report.sheet}`);
-  log(`tiles    ${report.tiles.length} in ${path.dirname(report.tiles[0] || report.sheet)}`);
-  for (const tile of report.tiles) log(`  ${path.basename(tile)}`);
-  log(`frames   ${payload.frames.length}, ${report.objects} parts drawn, ${report.triangles} triangles`);
-  log(`time     export ${exportSeconds.toFixed(1)} s, render ${renderSeconds.toFixed(1)} s on ${report.device}`);
+  if (report.sheet) {
+    log(`sheet    ${report.sheet}`);
+    log(`tiles    ${report.tiles.length} in ${path.dirname(report.tiles[0] || report.sheet)}`);
+    for (const tile of report.tiles) log(`  ${path.basename(tile)}`);
+    log(`frames   ${payload.frames.length}, ${report.objects} parts drawn, ${report.triangles} triangles`);
+  }
+  let encodeSeconds = 0;
+  if (report.clips) {
+    const ffmpeg = findFfmpeg();
+    const encodeStarted = Date.now();
+    report.videos = [];
+    for (const clip of report.clips) {
+      const video = encodeClip(ffmpeg, clip, options.layout || "stack", outDir);
+      report.videos.push({ label: clip.label, ...video });
+      if (!options.keep) fs.rmSync(path.dirname(clip.views[0].dir), { recursive: true, force: true });
+      const sizes = video.outputs.map((file) => (fs.statSync(file).size / 1024 / 1024).toFixed(1) + " MB").join(", ");
+      for (const file of video.outputs) log(`video    ${file}`);
+      log(`         ${clip.label}: ${video.width}x${video.height}, ${video.seconds.toFixed(1)} s, ${video.plays} x ${clip.rendered} frames at ${clip.fps} fps (${clip.views.map((view) => view.name).join(" + ")}), ${sizes}`);
+      log(`         ${clip.speed > 0 ? `travels ${clip.speed} studs/s${clip.track ? ", cameras follow" : ", cameras still"}` : "in place"}; ground at ${clip.ground.toFixed(2)}, checker ${clip.grid.toFixed(2)} studs; clip ${clip.duration.toFixed(3)} s ${clip.loop ? "looping" : "one-shot"}; tracks ${clip.tracks.map((track) => `${track.name} ${Number(track.length).toFixed(3)} s`).join(", ")}`);
+      log(`strip    ${video.strip} (frames ${video.picks.join(", ")} of the first play)`);
+    }
+    encodeSeconds = (Date.now() - encodeStarted) / 1000;
+    if (options.keep) fs.writeFileSync(path.join(outDir, `${name}_clips.json`), JSON.stringify(report.clips, null, 1));
+    log(`engine   ${report.clipEngine}; ${report.objects} parts drawn`);
+  }
+  log(`time     export ${exportSeconds.toFixed(1)} s, render ${renderSeconds.toFixed(1)} s${report.clips ? `, encode ${encodeSeconds.toFixed(1)} s, total ${((Date.now() - started) / 1000).toFixed(1)} s` : ""} on ${report.device}`);
   const failedMeshes = summarise(merged.failedMeshes, 8);
   if (failedMeshes.length) log(`boxes    ${Object.keys(merged.failedMeshes).length} meshes could not be read and are drawn as their part's box:\n  ${failedMeshes.join("\n  ")}`);
   const failedImages = summarise(merged.failedImages, 8);
@@ -498,7 +743,7 @@ async function main(argv, log = console.log) {
   return report;
 }
 
-module.exports = { main, call, parse, USAGE };
+module.exports = { main, call, parse, USAGE, encodeClip, findFfmpeg };
 
 if (require.main === module) {
   main(process.argv.slice(2)).catch((error) => {

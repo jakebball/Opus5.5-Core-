@@ -82,6 +82,8 @@ contract docs are added when the work reaches them (`project-setup.md` § The Pr
     `(override: ...)` values).
 14. **Change Summaries pointer:** `tech-design.md` must end with the pointer block from `project-setup.md`; an inlined
     copy of `change-summary.md` is a defect, replaced by the pointer.
+    **Agent budget:** the hard rules must include **Delegated agents are bounded**, pointing at
+    `<projects>/agent-budget.md`; an inlined copy of that file is a defect, replaced by the pointer.
 15. Report findings and offer to fix gaps. Never overwrite existing docs without confirmation.
 
 ## No project named

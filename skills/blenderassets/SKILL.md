@@ -131,7 +131,14 @@ triangles per part, and any warnings. Then:
    - zero-area triangles: dropped on export;
    - loose vertices;
    - triangles facing against their normals: this should never happen, so stop and investigate;
-   - over budget.
+   - over budget;
+   - **z-fighting** (`python/zfight.py`, run by `finish()` on every build; full list in `<out>/zfight.txt`): two
+     differently coloured faces of different pieces in the same plane, facing the same way and overlapping where a
+     player can see it. They flicker in Roblox and the sheet never shows it. Move one face off the plane by 0.03+
+     studs, end a trim inside the piece it meets instead of flush with its face, stand wall pieces (pictures,
+     clocks, shelves) 0.05 off the wall and furniture 0.35 off it (clear of skirting and dado rail). Hits inside a
+     shared kit prop belong to that kit's owner: report them, do not edit another session's module.
+     `BLENDLIB_ZFIGHT=0` skips the check.
 3. Fix the script and rebuild until the sheet reads right. Never call an asset done from numbers alone.
 
 The sheet uses Workbench's studio light and shows colours as authored. Roblox lighting differs, so judge final
@@ -156,6 +163,15 @@ node <skill>/blend.js push <Name>.json --port N --place-id ID --at x,y,z [--pare
   sessions and the user share that camera.
 - **`--upload` only after the user approves the asset.** Parts go to the group when the place is group-owned, at
   about 3-4 s each, and verification requires a `MeshAssetId` on every part. Push again after any Undo.
+- **A failed upload resumes.** Rerun the same `push --upload`: when `<Name>__incoming` was started from the same
+  payload (a hash of the meshes and texture pixels), it keeps it and uploads only the parts and textures still
+  missing, printing `resume: N parts already uploaded`. A changed payload, a preview push or `--fresh` starts over.
+  A big model (hundreds of parts) can take several reruns when Studio drops the connection; none re-uploads a part.
+- **Asset names fit Roblox's 50 characters.** Each upload is named `<prefix>_<part>` (prefix defaults to the model
+  name); the prefix is shortened to fit, and a part name over 48 characters is cut. Part names in the place are
+  never changed.
+- **One upload at a time per Studio.** Several sessions uploading through one Studio at once time out its plugin;
+  queue them.
 - **Where it lives.** `--parent` defaults to `Workspace.BlenderImports`, the review area. The approved upload goes
   straight to the model's home: `--parent ReplicatedStorage.Assets.Models --at 0,0,0` for a template the game
   clones through the `Assets` module, or the map for static scenery. Nothing ships from `BlenderImports`.
@@ -205,6 +221,9 @@ node <skill>/blend.js push <Name>.json --port N --place-id ID --at x,y,z [--pare
 | `unknown Roblox material` | not an `Enum.Material` name | e.g. `Wood`, `Neon`, `SmoothPlastic` |
 | verify FAILED: incoming missing | Studio rolled the instances back | push again |
 | `CreateAssetAsync ...` on `--upload` | unpublished place, or no permission | publish the place, or check group permissions |
+| `UploadFailed` on one part, every time | an asset name over 50 characters, from a blend.js before 2026-10-16 | update blend.js (it now fits names), or pass a short `--prefix` |
+| `Studio plugin connection timeout` or `Target instance "edit" disconnected` mid-upload | Studio busy (often several sessions uploading at once) or restarted | wait for `probe` to answer, then rerun the same push: it resumes |
+| a rerun re-uploads every part, leaving unused assets in the group | a blend.js before 2026-10-16 (no resume), or `--fresh`, or the payload was rebuilt | update blend.js; don't rebuild between upload reruns |
 | several MeshParts with one name, or extra assets, after `--upload` | a blend.js from before 2026-10-04 (no call token) under a bridge that repeats running calls | update blend.js; delete the stacked copies, one part per name |
 | `pieces on two atlases` | one part's pieces were added to different atlases | one atlas per part |
 | painted build re-bakes every time | geometry differs run to run (`create_uvsphere`, stale normals) | build deterministically; compare `_bake_key()` across two runs |

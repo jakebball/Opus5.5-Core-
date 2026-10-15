@@ -1,14 +1,29 @@
+-- DemoKit: the `Demo` API a demo script runs with. demo.js wraps it, the project's ready check and the demo body into
+-- one LocalScript and sets Demo._nonce / Demo._config / Demo._readyCheck / Demo._signal before Demo._run.
+-- Every print is "[demo:<nonce>] ..." so the recorder, reading Studio's log, takes only this run's lines.
 local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 
+-- start flash: magenta then green; end flash: magenta then blue (demo.js tells them apart by the second colour).
+-- With Demo._config.errorFlash (live mode only) an errored demo ends magenta then red instead, which `process` refuses
+-- to pass off as a clean clip. Studio recordings leave it off, so their end flash is always blue as before.
 const MARKER_COLOUR = Color3.fromRGB(255, 0, 255)
-const MARKER_SECOND_COLOUR = Color3.fromRGB(0, 255, 0)
+const MARKER_START_COLOUR = Color3.fromRGB(0, 255, 0)
+const MARKER_END_COLOUR = Color3.fromRGB(0, 0, 255)
+const MARKER_ERROR_COLOUR = Color3.fromRGB(255, 0, 0)
 const MARKER_SECONDS = 0.5
 const CAPTION_FONT = Enum.Font.GothamBold
+const KEY_BIND_SECONDS = 5
+const VIEWPORT_STABLE_SECONDS = 1
 
 local Demo = {}
 Demo.player = Players.LocalPlayer
+Demo._nonce = "local"
+Demo._config = { readyTimeout = 90, preroll = 1.5 }
+Demo._readyCheck = nil
+Demo._signal = function(_kind) end
 
 local overlay = Instance.new("ScreenGui")
 overlay.Name = "__DemoOverlay"
@@ -59,8 +74,12 @@ end
 local captionBox = textBox("Caption", 1, 0.95, 0.09)
 local titleBox = textBox("Title", 0.5, 0.5, 0.16)
 
+local function prefix()
+	return "[demo:" .. Demo._nonce .. "] "
+end
+
 function Demo.log(message)
-	print("[demo] " .. message)
+	print(prefix() .. message)
 end
 
 function Demo.wait(seconds)
@@ -108,10 +127,48 @@ function Demo.face(position)
 	end
 end
 
+local inputManager = nil
+
+-- The project's InputManager (Runner framework: ReplicatedStorage.Shared.Generic.InputManager, which the Runner only
+-- moves into ReplicatedStorage at run time), waiting up to `timeout` for it. Only a found module is cached, so an early
+-- call cannot pin "none" for the rest of the demo.
+local function findInputManager(timeout)
+	if inputManager then
+		return inputManager
+	end
+	local shared = ReplicatedStorage:WaitForChild("Shared", timeout)
+	local generic = shared and shared:WaitForChild("Generic", timeout)
+	local module = generic and generic:WaitForChild("InputManager", timeout)
+	if not module then
+		return nil
+	end
+	local loaded, result = pcall(require, module)
+	if loaded and type(result) == "table" and type(result.simulateKey) == "function" then
+		inputManager = result
+	end
+	return inputManager
+end
+
+-- Presses the key through InputManager.simulateKey: the same action path as the keyboard, in-game, with no latency.
+-- A key not bound yet is retried for KEY_BIND_SECONDS (the component binding it may still be starting), then errors.
+-- There is no OS-level fallback: a real key press goes to whatever window has focus (in the editor an installed
+-- plugin binds F to Delete), so a project without InputManager drives the feature through Demo.component instead.
 function Demo.key(keyCode, holdSeconds)
 	local hold = holdSeconds or 0.15
-	print(string.format("[demo:key] %s %.2f", tostring(keyCode), hold))
-	task.wait(hold + 0.6)
+	local code = if typeof(keyCode) == "EnumItem" then keyCode else Enum.KeyCode[tostring(keyCode)]
+	local manager = findInputManager(10)
+	if not manager then
+		error("Demo.key: this project has no ReplicatedStorage.Shared.Generic.InputManager with simulateKey; call the feature through Demo.component instead", 2)
+	end
+	local deadline = os.clock() + KEY_BIND_SECONDS
+	while not manager.simulateKey(code, hold) do
+		if os.clock() > deadline then
+			error(string.format("Demo.key: %s is not bound to any InputManager action after %d s", code.Name, KEY_BIND_SECONDS), 2)
+		end
+		task.wait(0.1)
+	end
+	Demo.log("key " .. code.Name)
+	task.wait(hold)
 end
 
 function Demo.caption(text, seconds)
@@ -221,30 +278,104 @@ function Demo.camera.orbit(subject, radius, height, seconds)
 	releaseCamera()
 end
 
-function Demo._marker()
+function Demo._marker(secondColour)
 	marker.BackgroundColor3 = MARKER_COLOUR
 	marker.Visible = true
 	task.wait(MARKER_SECONDS)
-	marker.BackgroundColor3 = MARKER_SECOND_COLOUR
+	marker.BackgroundColor3 = secondColour
 	task.wait(MARKER_SECONDS)
 	marker.Visible = false
 	task.wait(0.1)
 end
 
-function Demo._run(body)
-	Demo.character()
-	task.wait(1)
-	Demo.log("start")
-	Demo._marker()
-	local succeeded, failure = pcall(body, Demo)
-	if not succeeded then
-		warn("[demo] error: " .. tostring(failure))
-		Demo.caption("Demo error: " .. tostring(failure))
-		task.wait(3)
+local isReady = false
+local begun = false
+
+-- Waits until the game view is worth recording: the game loaded, the character and its root part in, the viewport
+-- size unchanged for VIEWPORT_STABLE_SECONDS, and the project's own check (demo-source/ready.luau, Demo._readyCheck)
+-- true; then holds Demo._config.preroll seconds. Errors after Demo._config.readyTimeout. Runs once.
+function Demo.ready()
+	if isReady then
+		return
 	end
-	Demo.clearCaption()
-	Demo._marker()
+	local started = os.clock()
+	local deadline = started + Demo._config.readyTimeout
+	local function waitFor(what, check)
+		while not check() do
+			if os.clock() > deadline then
+				error(string.format("Demo.ready: %s not ready after %d s", what, Demo._config.readyTimeout), 0)
+			end
+			task.wait(0.1)
+		end
+	end
+	waitFor("game:IsLoaded()", function()
+		return game:IsLoaded()
+	end)
+	waitFor("the character", function()
+		local character = Demo.player.Character
+		return character ~= nil and character:FindFirstChild("HumanoidRootPart") ~= nil and character:FindFirstChildOfClass("Humanoid") ~= nil
+	end)
+	local lastSize, stableSince = nil, os.clock()
+	waitFor("a stable viewport", function()
+		local size = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize
+		if size ~= lastSize then
+			lastSize, stableSince = size, os.clock()
+		end
+		return size ~= nil and size.X > 100 and size.Y > 100 and os.clock() - stableSince >= VIEWPORT_STABLE_SECONDS
+	end)
+	if Demo._readyCheck then
+		local complained = false
+		waitFor("the project's ready check (demo-source/ready.luau)", function()
+			local ok, result = pcall(Demo._readyCheck, Demo)
+			if not ok and not complained then
+				complained = true
+				warn(prefix() .. "ready check errored (retrying): " .. tostring(result))
+			end
+			return ok and result == true
+		end)
+	end
+	task.wait(Demo._config.preroll)
+	isReady = true
+	Demo.log(string.format("ready after %.1f s", os.clock() - started))
+end
+
+-- The clip starts here: the start flash, after Demo.ready(). A demo that does its own setup first (waits for knights,
+-- teleports) calls this once that is done, so the setup is not in the clip; otherwise it runs before the first line.
+function Demo.begin()
+	if begun then
+		return
+	end
+	Demo.ready()
+	begun = true
+	Demo.log("start")
+	Demo._signal("begin")
+	Demo._marker(MARKER_START_COLOUR)
+end
+
+function Demo._run(body, deferBegin)
+	local succeeded, failure = pcall(function()
+		Demo.ready()
+		if not deferBegin then
+			Demo.begin()
+		end
+		body(Demo)
+		if not begun then
+			error("the demo finished without calling Demo.begin()", 0)
+		end
+	end)
+	if not succeeded then
+		warn(prefix() .. "error: " .. tostring(failure))
+		if begun then
+			Demo.caption("Demo error: " .. tostring(failure))
+			task.wait(3)
+		end
+	end
+	if begun then
+		Demo.clearCaption()
+		Demo._marker(if not succeeded and Demo._config.errorFlash then MARKER_ERROR_COLOUR else MARKER_END_COLOUR)
+	end
 	Demo.log("done")
+	Demo._signal("done")
 	releaseCamera()
 	overlay:Destroy()
 end

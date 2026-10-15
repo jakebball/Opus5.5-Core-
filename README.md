@@ -137,6 +137,7 @@ describe the asset ─▶ blender-source/Asset.py ─▶ blend.js build (≈4 s)
 | `/makereactcomponent` | Turn an authored GUI into a react-lua component |
 | `/makeweapon` | Wire a gun model into the Runner FPS layer |
 | `/deslopify` | Sweep a project's Luau against the Hard Rules, category by category, with approval |
+| `/perfbudget` | Optimise a place to a rendering budget: a survey playtest rides a fixed route, estimates triangles and draw calls per stop and heading, keeps every run on disk, and loops fixes until the budget is met. Only on request |
 
 ## How much is generic
 
@@ -157,7 +158,7 @@ setup; everything in the second half of the table is the game. The setup is what
 ## Rules that make it work
 
 - **Docs wait for approval.** A change closes with a 2-3 sentence summary; docs are written once the user says it works.
-- **Never start or stop a playtest**, except `/demo` recording a video the user asked for. Claude makes the change, says what to check, and offers a demo; the user plays.
+- **Never start or stop a playtest**, except `/demo` recording a video or `/perfbudget` running a survey the user asked for. Claude makes the change, says what to check, and offers a demo; the user plays.
 - **Never look through Studio's camera.** Render with `/assetshot`.
 - **Scripts and assets live on disk.** Studio runs what was pushed; to change a thing, change its script and run it again.
 - **One reference asset before a batch.** Settle the style on one approved asset, then build volume.

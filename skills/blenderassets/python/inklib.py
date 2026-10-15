@@ -17,6 +17,13 @@ Rules learned building the Joust Tycoon starter set:
     through something else (a collar against the head): obj["no_ink"] = True;
   - a piece can set obj["ink_thickness"] to override the thickness (a thin band bridging a gap reads cleaner
     with a thinner hull).
+
+Baked ink (opt-in; the default is unchanged): outline(piece, baked=True), or inklib.BAKED = True before outlining,
+puts the hull inside the piece's own part instead of "<part>Ink". paintlib then paints a solid ink block (alpha 0, so
+TintMask never tints it) into free texture space of that part's atlas and maps every hull corner to the block's
+centre: island paint is untouched, the part count halves and the triangle count is unchanged. The hull then shares
+its part's CastShadow and SurfaceAppearance, so check shadows and sheen in Studio before adopting it. Only for parts
+painted on an Atlas; a solid-colour part keeps a separate hull.
 """
 
 import bmesh
@@ -27,6 +34,7 @@ import blendlib as bl
 
 INK = 0.05
 INK_COLOUR = "0B0B10"
+BAKED = False
 
 
 def hull(obj, thickness=INK, name=None, colour=INK_COLOUR):
@@ -58,10 +66,15 @@ def hull(obj, thickness=INK, name=None, colour=INK_COLOUR):
     return copy
 
 
-def mark(hull_obj, part, colour=INK_COLOUR):
-    """Make a hull exportable: its own part, no shadow, flagged so paint bakes ignore it."""
-    bl.roblox(hull_obj, part=part, material="SmoothPlastic", shadow=False)
+def mark(hull_obj, part, colour=INK_COLOUR, baked=False):
+    """Make a hull exportable: its own part, no shadow, flagged so paint bakes ignore it. baked: it joins `part`
+    itself (the piece's own part), keeping that part's material and shadow, and paintlib inks it from the atlas."""
+    if baked:
+        bl.roblox(hull_obj, part=part)
+    else:
+        bl.roblox(hull_obj, part=part, material="SmoothPlastic", shadow=False)
     hull_obj["ink"] = True
+    hull_obj["ink_baked"] = bool(baked)
     hull_obj["stage_material"] = "Ink"
     hull_obj["solid_colour"] = colour
     return hull_obj
@@ -74,9 +87,11 @@ def size_of(obj):
     return (high - low).length
 
 
-def outline(obj, part=None, thickness=INK, min_size=0.32, thin_below=1.2, thin_factor=0.6, colour=INK_COLOUR):
-    """Outline one piece into part "<part>Ink" (part defaults to the piece's roblox_part). Pieces under min_size
-    studs (bounding-box diagonal) or flagged no_ink are skipped; pieces under thin_below get a thinner hull."""
+def outline(obj, part=None, thickness=INK, min_size=0.32, thin_below=1.2, thin_factor=0.6, colour=INK_COLOUR, baked=None):
+    """Outline one piece into part "<part>Ink" (part defaults to the piece's roblox_part), or with baked (default
+    BAKED) into "<part>" itself. Pieces under min_size studs (bounding-box diagonal) or flagged no_ink are skipped;
+    pieces under thin_below get a thinner hull."""
+    baked = BAKED if baked is None else baked
     if obj.get("no_ink"):
         return None
     size = size_of(obj)
@@ -84,4 +99,4 @@ def outline(obj, part=None, thickness=INK, min_size=0.32, thin_below=1.2, thin_f
         return None
     part = part or obj.get("roblox_part", obj.name)
     thickness = obj.get("ink_thickness", thickness if size > thin_below else thickness * thin_factor)
-    return mark(hull(obj, thickness, name=f"{obj.name}Ink", colour=colour), f"{part}Ink", colour)
+    return mark(hull(obj, thickness, name=f"{obj.name}Ink", colour=colour), part if baked else f"{part}Ink", colour, baked)

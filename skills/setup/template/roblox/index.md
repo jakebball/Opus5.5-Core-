@@ -32,6 +32,19 @@ sub-agents). Templates for each are in `~/.claude/skills/setup/templates/`.
 New to the project: `index.md` → `tech-design.md` → the one feature doc your task touches. Do not bulk-read
 `features/`.
 
+## Delegation
+
+The orchestrating session runs Opus 5.5 at medium effort and hands work to these agent types (user-level presets in
+`~/.claude/agents/`). Pick by the work, not the size:
+
+| Agent type | Model, effort | Use for |
+| --- | --- | --- |
+| `asset-pipeline` | Opus 5.5, max | Art and the asset pipeline: Blender models, painting, decimation and LOD tiers, uploads, mesh swaps, rigs, animation, item icons |
+| `perf-optimizer` | Opus 5.5, max | Complex optimisation: unclear frame-time, triangle, draw-call, memory or script-time causes, fixes spanning several systems, the `/perfbudget` loop |
+| `feature-dev` | Opus 5.5, medium | Code that needs judgment: gameplay features, components, UI wiring, bug fixes, refactors, and pipeline tooling with a clear pass/fail check |
+| `builder` | Sonnet 5.5, medium | Mechanical jobs the brief fully specifies, with clear checks: map and dressing rebuilds, attribute passes, config changes, re-running a pipeline step. Stops and reports anything needing a judgment call |
+| `scout` | Sonnet 5.5, low | Read-only lookups and measurements in Studio: counting instances, reading attributes, measuring tris and LOD state. Editing and Studio-changing tools are blocked (`disallowedTools`). Plain file searches go to the built-in `Explore` |
+
 ## Design Commitments
 
 None yet.

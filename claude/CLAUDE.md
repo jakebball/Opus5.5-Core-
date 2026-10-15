@@ -40,7 +40,7 @@ Proactively identify inefficiencies, anti-patterns, and suboptimal approaches in
 ## Playtesting
 Never start or stop a Roblox Studio playtest yourself. The user handles all playtesting. Do not call `start_playtest` / `stop_playtest` (or any equivalent). Make code changes, then describe what you'd want verified in a playtest and ask the user to run it. You may still inspect the running session via `execute_luau` and read-only tools if a playtest is already in progress.
 
-**The one exception is `/demo`:** when the user asks for a demo (or says yes to the offer below), the `/demo` skill's `demo.js` starts and stops a playtest to record a short video of the feature. Never start a playtest any other way, never record unasked, and never record while another session or the user may be working in Studio; ask first.
+**The two exceptions are `/demo` and `/perfbudget`:** when the user asks for a demo (or says yes to the offer below), the `/demo` skill's `demo.js` starts and stops a playtest to record a short video of the feature; when the user asks for a performance survey or the optimise-to-budget loop, the `/perfbudget` skill's `perf.js survey` starts and stops a playtest to measure the route. Never start a playtest any other way, never record or survey unasked, and never do either while another session or the user may be working in Studio; ask first.
 
 ## No Git in Projects
 Never use git in a game project: no `git init`, commits, branches or branch proposals. Roblox Studio's version history is the history. Git is used only for `roblox-claude-setup`, the repo that distributes the rules and skills.

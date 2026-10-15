@@ -2,6 +2,7 @@ local HttpService = game:GetService("HttpService")
 local AssetService = game:GetService("AssetService")
 local Lighting = game:GetService("Lighting")
 local MaterialService = game:GetService("MaterialService")
+local KeyframeSequenceProvider = game:GetService("KeyframeSequenceProvider")
 
 const RUN_ID = "__RUN_ID__"
 const CHUNK_SIZE = 4000000
@@ -9,6 +10,10 @@ const STALE_SECONDS = 1800
 const POSITION_SCALE = 10000
 const NORMAL_SCALE = 1000
 const UV_SCALE = 10000
+const CLIP_FPS = 30
+const CLIP_LOAD_SECONDS = 20
+const CLIP_MAX_FRAMES = 3600
+const CLIP_END_GUARD = 1e-4
 
 local store = _G.AssetShot
 if not store then
@@ -44,6 +49,7 @@ local failedImages = {}
 local partInfos = {}
 local partIndexOf = {}
 local frames = {}
+local clips = {}
 local temporaries = {}
 local warnings = {}
 
@@ -630,6 +636,273 @@ function shot.snap(options)
 	return #frames
 end
 
+local function insideTemporary(instance)
+	for _, temporary in temporaries do
+		if instance == temporary or instance:IsDescendantOf(temporary) then
+			return true
+		end
+	end
+	return false
+end
+
+local function animatorFor(owner)
+	local instance = resolve(owner)
+	local animator = if instance:IsA("Animator") then instance else instance:FindFirstChildWhichIsA("Animator", true)
+	local holder = animator and animator.Parent
+	if not animator then
+		holder = if instance:IsA("Humanoid") or instance:IsA("AnimationController")
+			then instance
+			else instance:FindFirstChildWhichIsA("Humanoid", true) or instance:FindFirstChildWhichIsA("AnimationController", true)
+		if not holder then
+			error("clip: " .. instance:GetFullName() .. " has no Animator, Humanoid or AnimationController", 0)
+		end
+	end
+	if not insideTemporary(holder) then
+		error("clip: " .. holder:GetFullName() .. " is not inside a shot.temporary copy; clone the rig and animate the copy, never the original", 0)
+	end
+	if not animator then
+		animator = Instance.new("Animator")
+		animator.Parent = holder
+	end
+	return animator
+end
+
+local function animationFor(source)
+	if typeof(source) == "string" then
+		local assetId = string.match(source, "^rbxassetid://(%d+)$") or string.match(source, "^(%d+)$")
+		if assetId then
+			local animation = Instance.new("Animation")
+			animation.AnimationId = "rbxassetid://" .. assetId
+			return animation, nil, animation.AnimationId
+		end
+		source = resolve(source)
+	end
+	if typeof(source) ~= "Instance" then
+		error("clip: a track's animation is a KeyframeSequence, an Animation, an instance path or an asset id", 0)
+	end
+	if source:IsA("KeyframeSequence") then
+		local animation = Instance.new("Animation")
+		animation.AnimationId = KeyframeSequenceProvider:RegisterKeyframeSequence(source)
+		return animation, source, source.Name
+	elseif source:IsA("Animation") then
+		return source, source, source.Name
+	end
+	error("clip: " .. source:GetFullName() .. " is a " .. source.ClassName .. ", not a KeyframeSequence or Animation", 0)
+end
+
+-- Part1 = Part0 * C0 * Transform * C1^-1 for a JointInstance (Transform only on a Motor6D), so Part0 = Part1 * (C0 *
+-- Transform * C1^-1)^-1 walking the other way; a WeldConstraint keeps the offset Part0^-1 * Part1 it had when the solver
+-- was built. Parts are walked breadth-first from the anchored and assembly-root parts.
+local function jointSolver(parts)
+	local inSet = {}
+	for _, part in parts do
+		inSet[part] = true
+	end
+	local links = {}
+	local seenJoints = {}
+	for _, part in parts do
+		for _, joint in part:GetJoints() do
+			if seenJoints[joint] or not (joint:IsA("JointInstance") or joint:IsA("WeldConstraint")) then
+				continue
+			end
+			seenJoints[joint] = true
+			local part0, part1 = joint.Part0, joint.Part1
+			if part0 and part1 and inSet[part0] and inSet[part1] then
+				local offset = if joint:IsA("WeldConstraint") then part0.CFrame:ToObjectSpace(part1.CFrame) else nil
+				links[part0] = links[part0] or {}
+				links[part1] = links[part1] or {}
+				table.insert(links[part0], { joint = joint, other = part1, forward = true, offset = offset })
+				table.insert(links[part1], { joint = joint, other = part0, forward = false, offset = offset })
+			end
+		end
+	end
+	local roots, reached, order = {}, {}, {}
+	for _, part in parts do
+		if part.Anchored or part.AssemblyRootPart == part then
+			table.insert(roots, part)
+			reached[part] = true
+		end
+	end
+	local queue = table.clone(roots)
+	local head = 1
+	while head <= #queue do
+		local part = queue[head]
+		head += 1
+		for _, link in links[part] or {} do
+			if not reached[link.other] then
+				reached[link.other] = true
+				table.insert(queue, link.other)
+				table.insert(order, { from = part, to = link.other, joint = link.joint, forward = link.forward, offset = link.offset })
+			end
+		end
+	end
+	return function()
+		local solved = {}
+		for _, part in roots do
+			solved[part] = part.CFrame
+		end
+		for _, step in order do
+			local relative = step.offset
+			if not relative then
+				local joint = step.joint
+				relative = joint.C0 * (if joint:IsA("Motor6D") then joint.Transform else CFrame.identity) * joint.C1:Inverse()
+			end
+			solved[step.to] = solved[step.from] * (if step.forward then relative else relative:Inverse())
+		end
+		return solved
+	end
+end
+
+local function forwardOf(value, rootFrame)
+	local direction = value
+	if typeof(direction) == "string" then
+		local axes = { ["-z"] = Vector3.new(0, 0, -1), ["+z"] = Vector3.new(0, 0, 1), ["-x"] = Vector3.new(-1, 0, 0), ["+x"] = Vector3.new(1, 0, 0) }
+		direction = rootFrame:VectorToWorldSpace(axes[direction] or axes["-z"])
+	elseif typeof(direction) ~= "Vector3" then
+		direction = rootFrame.LookVector
+	end
+	direction = Vector3.new(direction.X, 0, direction.Z)
+	return if direction.Magnitude > 1e-6 then direction.Unit else Vector3.new(0, 0, -1)
+end
+
+-- Records a clip: every part under `targets` at each of `count` frames, posed by the real Animators of a private copy.
+-- Each track's TimePosition is set to the frame's time and its Animator stepped by zero, so every frame is exact and
+-- nothing else in the place is advanced.
+function shot.clip(options)
+	options = options or {}
+	local targets = options.targets or shot.targets
+	if #targets == 0 then
+		error("clip has no targets", 2)
+	end
+	local fps = math.clamp(tonumber(options.fps) or tonumber(ARGS.fps) or CLIP_FPS, 1, 120)
+	local entries = {}
+	local animators = {}
+	local groundSpeed = tonumber(options.groundSpeed)
+	for _, track in options.tracks or {} do
+		local animator = animatorFor(track.animator or track.rig)
+		local animation, source, name = animationFor(track.animation)
+		local loaded = animator:LoadAnimation(animation)
+		loaded:Play(0, tonumber(track.weight) or 1, 1)
+		table.insert(entries, { track = loaded, name = name })
+		if not table.find(animators, animator) then
+			table.insert(animators, animator)
+		end
+		if groundSpeed == nil and source then
+			local speed = source:GetAttribute("GroundSpeed")
+			if type(speed) == "number" then
+				groundSpeed = speed
+			end
+		end
+	end
+	if #entries == 0 then
+		error("clip has no tracks", 2)
+	end
+	local waitStarted = os.clock()
+	for _, entry in entries do
+		while entry.track.Length <= 0 do
+			if os.clock() - waitStarted > CLIP_LOAD_SECONDS then
+				error("clip: " .. entry.name .. " did not load in " .. CLIP_LOAD_SECONDS .. " s", 0)
+			end
+			job.progress = "loading " .. entry.name
+			task.wait(0.05)
+		end
+	end
+	local longest, allLooped = 0, true
+	for _, entry in entries do
+		longest = math.max(longest, entry.track.Length)
+		allLooped = allLooped and entry.track.Looped
+	end
+	local duration = tonumber(options.duration) or longest
+	local looped = if options.loop == nil then allLooped else options.loop == true
+	local count, step
+	if looped then
+		count = math.max(1, math.round(duration * fps))
+		step = duration / count
+	else
+		count = math.floor(duration * fps + 1e-6) + 1
+		step = 1 / fps
+	end
+	if count > CLIP_MAX_FRAMES then
+		error(string.format("clip: %d frames is over the %d-frame limit; lower --fps or shorten the clip", count, CLIP_MAX_FRAMES), 0)
+	end
+	local first = resolve(targets[1])
+	local root = if options.root then resolve(options.root) elseif first:IsA("Model") then first.PrimaryPart or first else first
+	local rootFrame = worldCFrame(root)
+	local origin = rootFrame.Position
+	local forward = forwardOf(options.forward or ARGS.forward, rootFrame)
+	local label = tostring(options.label or first.Name)
+	local parts, seen = {}, {}
+	for _, target in targets do
+		collect(resolve(target), parts, seen)
+	end
+	local statics = table.create(#parts)
+	for _, part in parts do
+		local index = partIndexOf[part]
+		if not index then
+			table.insert(partInfos, describe(part))
+			index = #partInfos - 1
+			partIndexOf[part] = index
+		end
+		local size, color = part.Size, part.Color
+		table.insert(statics, string.format("[%d,%.7g,%.7g,%.7g,%.4g,%.4g,%.4g,%.4g]", index, size.X, size.Y, size.Z, color.R, color.G, color.B, part.Transparency))
+	end
+	local solve = if type(options.after) == "function" then jointSolver(parts) else nil
+	local poses = table.create(count)
+	local pieces = table.create(#parts)
+	for frameIndex = 0, count - 1 do
+		local time = frameIndex * step
+		for _, entry in entries do
+			local length = entry.track.Length
+			entry.track.TimePosition = if entry.track.Looped then time % length else math.min(time, length - CLIP_END_GUARD)
+		end
+		for _, animator in animators do
+			animator:StepAnimations(0)
+		end
+		local solved = nil
+		if solve then
+			options.after(time, step, frameIndex)
+			solved = solve()
+		end
+		for index, part in parts do
+			pieces[index] = cframeList((if solved and solved[part] then solved[part] else part.CFrame) - origin)
+		end
+		poses[frameIndex + 1] = '"' .. table.concat(pieces, ",") .. '"'
+	end
+	for _, entry in entries do
+		entry.track:Stop(0)
+	end
+	local trackFields = {}
+	for _, entry in entries do
+		table.insert(trackFields, string.format('{"name":%s,"length":%.6g,"looped":%s}', encode(entry.name), entry.track.Length, tostring(entry.track.Looped)))
+	end
+	local fields = {
+		'"label":' .. encode(label),
+		string.format('"fps":%.6g,"step":%.9g,"count":%d,"duration":%.6g', fps, step, count, duration),
+		'"loop":' .. tostring(looped),
+		'"origin":' .. vectorJson(origin),
+		'"forward":' .. vectorJson(forward),
+		'"tracks":[' .. table.concat(trackFields, ",") .. "]",
+		'"parts":[' .. table.concat(statics, ",") .. "]",
+		'"poses":[' .. table.concat(poses, ",") .. "]",
+	}
+	if groundSpeed then
+		table.insert(fields, string.format('"groundSpeed":%.6g', groundSpeed))
+	end
+	if tonumber(options.ground) then
+		table.insert(fields, string.format('"ground":%.6g', tonumber(options.ground) - origin.Y))
+	end
+	if type(options.cameras) == "table" then
+		local cameraFields = {}
+		for name, camera in options.cameras do
+			table.insert(cameraFields, string.format('%s:{"eye":%s,"target":%s,"fov":%.6g}', encode(tostring(name)), vectorJson(camera.eye), vectorJson(camera.target or Vector3.zero), tonumber(camera.fov) or 30))
+		end
+		table.insert(fields, '"cameras":{' .. table.concat(cameraFields, ",") .. "}")
+	end
+	table.insert(clips, "{" .. table.concat(fields, ",") .. "}")
+	job.progress = string.format("clip %s: %d frames", label, count)
+	return #clips
+end
+
 local function loadMeshes()
 	local pending = {}
 	for _, key in meshOrder do
@@ -705,6 +978,7 @@ local function payload()
 		table.concat(partInfos, ","),
 		'],"frames":[',
 		table.concat(frames, ","),
+		if #clips > 0 then '],"clips":[' .. table.concat(clips, ",") else "",
 		'],"meshes":{',
 		table.concat(meshFields, ","),
 		'},"meshKeys":',
@@ -737,7 +1011,7 @@ task.defer(function()
 		if not posed then
 			error("pose: " .. tostring(poseProblem), 0)
 		end
-		if #frames == 0 then
+		if #frames == 0 and #clips == 0 then
 			error("the pose took no snapshots", 0)
 		end
 		loadMeshes()

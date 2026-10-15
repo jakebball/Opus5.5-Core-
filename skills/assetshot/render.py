@@ -20,6 +20,26 @@ SHEET_WIDTH = 1920
 VIEW_FOV = 30.0
 FOCUS_FOV = 30.0
 DEFAULT_VIEWS = ["persp", "front", "left", "right", "back", "top"]
+CLIP_SIZE = (1280, 720)
+CLIP_FOV = 30.0
+CLIP_MARGIN = 1.1
+CLIP_GRID = 2.0
+CLIP_GROUND_LIGHT = (0.80, 0.77, 0.68)
+CLIP_GROUND_DARK = (0.70, 0.67, 0.58)
+CLIP_GROUND_EXTENT = 3000.0
+CLIP_GROUND_FADE = (70.0, 260.0)
+CLIP_SAMPLES = {"eevee": 16, "cycles": 8}
+# where each named clip camera stands, as (ahead, right, up) in the rig's frame before normalising
+CLIP_VIEWS = {
+    "side": (0.08, 1.0, 0.12),
+    "left": (0.08, -1.0, 0.12),
+    "chase": (-1.0, -1.0, 0.7),
+    "chase-right": (-1.0, 1.0, 0.7),
+    "front": (1.0, -0.8, 0.4),
+    "front-right": (1.0, 0.8, 0.4),
+    "back": (-1.0, 0.0, 0.38),
+    "top": (0.0, 0.0, 1.0),
+}
 BACKDROP = (0.42, 0.46, 0.53)
 SHEET_BACKGROUND = (0.10, 0.11, 0.13)
 SKY_ZENITH = (0.47, 0.69, 0.87)
@@ -194,11 +214,18 @@ def separate(nodes, links, vector):
     return node.outputs["X"], node.outputs["Y"], node.outputs["Z"]
 
 
-def one_sided(nodes, links, surface):
+def one_sided(nodes, links, surface, shadow_flip=False):
     geometry = nodes.new("ShaderNodeNewGeometry")
     transparent = nodes.new("ShaderNodeBsdfTransparent")
     cull = nodes.new("ShaderNodeMixShader")
-    links.new(geometry.outputs["Backfacing"], cull.inputs[0])
+    culled = geometry.outputs["Backfacing"]
+    if shadow_flip:
+        # Cycles faces a shadow ray along the ray (surface to light), the reverse of a shadow map's view from the light,
+        # so |backfacing - shadow ray| drops what a back-face-culled shadow map drops: a baked inverted-hull ink shell
+        # merged into a mesh no longer shadows the mesh inside it
+        light_path = nodes.new("ShaderNodeLightPath")
+        culled = socket_math(nodes, links, "ABSOLUTE", socket_math(nodes, links, "SUBTRACT", culled, light_path.outputs["Is Shadow Ray"]))
+    links.new(culled, cull.inputs[0])
     links.new(surface, cull.inputs[1])
     links.new(transparent.outputs[0], cull.inputs[2])
     return cull.outputs[0]
@@ -220,6 +247,8 @@ class Renderer:
         self.warnings = []
         self.object_count = 0
         self.triangle_count = 0
+        self.collections = []
+        self.shadow_flip = True
         self.scene = bpy.context.scene
         for leftover in list(bpy.data.objects):
             bpy.data.objects.remove(leftover, do_unlink=True)
@@ -367,7 +396,7 @@ class Renderer:
         return image
 
     def material(self, material_name, tile, texture_path, alpha_mode="Transparency"):
-        key = (material_name, tile, texture_path, alpha_mode)
+        key = (material_name, tile, texture_path, alpha_mode, self.shadow_flip)
         cached = self.material_cache.get(key)
         if cached:
             return cached
@@ -439,12 +468,12 @@ class Renderer:
             if tile:
                 links.new(self.stud_normal(nodes, links, tile), shader.inputs["Normal"])
             surface = shader.outputs[0]
-        links.new(one_sided(nodes, links, surface), output.inputs["Surface"])
+        links.new(one_sided(nodes, links, surface, self.shadow_flip), output.inputs["Surface"])
         self.material_cache[key] = material
         return material
 
     def decal_material(self, path):
-        key = ("decal", path)
+        key = ("decal", path, self.shadow_flip)
         cached = self.material_cache.get(key)
         if cached:
             return cached
@@ -468,7 +497,7 @@ class Renderer:
         shader.inputs["Roughness"].default_value = 0.6
         links.new(color.outputs["Vector"], shader.inputs["Base Color"])
         links.new(socket_math(nodes, links, "MULTIPLY", texture.outputs["Alpha"], info.outputs["Alpha"]), shader.inputs["Alpha"])
-        links.new(one_sided(nodes, links, shader.outputs[0]), output.inputs["Surface"])
+        links.new(one_sided(nodes, links, shader.outputs[0], self.shadow_flip), output.inputs["Surface"])
         self.material_cache[key] = material
         return material
 
@@ -628,46 +657,48 @@ class Renderer:
         collection.objects.link(holder)
         return holder
 
+    def make_part(self, info, matrix, size, color, transparency, collection):
+        objects = []
+        mesh = None
+        if info.get("kind") == "mesh":
+            mesh = self.mesh_for(info, size)
+        if mesh is None:
+            shape = info.get("shape", "Block") if info.get("kind") == "shape" else "Block"
+            scale = info.get("meshScale", (1, 1, 1)) if info.get("kind") == "shape" else (1, 1, 1)
+            offset = info.get("meshOffset", (0, 0, 0)) if info.get("kind") == "shape" else (0, 0, 0)
+            mesh = self.shape_for(shape, size, scale, offset)
+        for decal in info.get("decals", []):
+            holder = self.decal_object(decal, mesh, matrix, collection)
+            if holder:
+                objects.append(holder)
+        if transparency >= 0.999:
+            return objects
+        texture_path = self.images.get(info.get("texture")) if info.get("texture") else None
+        tint = info.get("tint", (1, 1, 1))
+        base = tint if texture_path else [value * shade for value, shade in zip(color, tint)]
+        variant = (info.get("variant") or "").lower()
+        tile = float(info["tile"]) if "stud" in variant and info.get("tile") else None
+        holder = bpy.data.objects.new(info.get("name", "Part"), mesh)
+        holder.matrix_world = matrix
+        holder.color = (*[srgb_to_linear(value) for value in base], 1.0 - transparency)
+        holder.material_slots[0].link = "OBJECT"
+        holder.material_slots[0].material = self.material(info.get("material", "Plastic"), tile, texture_path, info.get("alphaMode", "Transparency"))
+        if not info.get("castShadow", True) or transparency > 0.05:
+            holder.visible_shadow = False
+        collection.objects.link(holder)
+        objects.append(holder)
+        self.object_count += 1
+        self.triangle_count += self.triangle_cache.get(mesh.name, 0)
+        return objects
+
     def build_frame(self, frame_index, frame):
         collection = bpy.data.collections.new(f"Frame{frame_index}")
         self.scene.collection.children.link(collection)
+        self.collections.append(collection)
         objects = []
         for record in frame["parts"]:
             info = self.parts[int(record[0])]
-            matrix = matrix_from(record[1:13])
-            size = record[13:16]
-            color = record[16:19]
-            transparency = float(record[19])
-            mesh = None
-            if info.get("kind") == "mesh":
-                mesh = self.mesh_for(info, size)
-            if mesh is None:
-                shape = info.get("shape", "Block") if info.get("kind") == "shape" else "Block"
-                scale = info.get("meshScale", (1, 1, 1)) if info.get("kind") == "shape" else (1, 1, 1)
-                offset = info.get("meshOffset", (0, 0, 0)) if info.get("kind") == "shape" else (0, 0, 0)
-                mesh = self.shape_for(shape, size, scale, offset)
-            for decal in info.get("decals", []):
-                holder = self.decal_object(decal, mesh, matrix, collection)
-                if holder:
-                    objects.append(holder)
-            if transparency >= 0.999:
-                continue
-            texture_path = self.images.get(info.get("texture")) if info.get("texture") else None
-            tint = info.get("tint", (1, 1, 1))
-            base = tint if texture_path else [value * shade for value, shade in zip(color, tint)]
-            variant = (info.get("variant") or "").lower()
-            tile = float(info["tile"]) if "stud" in variant and info.get("tile") else None
-            holder = bpy.data.objects.new(info.get("name", "Part"), mesh)
-            holder.matrix_world = matrix
-            holder.color = (*[srgb_to_linear(value) for value in base], 1.0 - transparency)
-            holder.material_slots[0].link = "OBJECT"
-            holder.material_slots[0].material = self.material(info.get("material", "Plastic"), tile, texture_path, info.get("alphaMode", "Transparency"))
-            if not info.get("castShadow", True) or transparency > 0.05:
-                holder.visible_shadow = False
-            collection.objects.link(holder)
-            objects.append(holder)
-            self.object_count += 1
-            self.triangle_count += self.triangle_cache.get(mesh.name, 0)
+            objects.extend(self.make_part(info, matrix_from(record[1:13]), record[13:16], record[16:19], float(record[19]), collection))
         return collection, objects
 
     def points(self, objects):
@@ -853,6 +884,253 @@ class Renderer:
                 tiles.append((path, tile_label))
         return tiles
 
+    def setup_clip_engine(self, engine, samples):
+        scene = self.scene
+        if engine == "cycles":
+            scene.render.engine = "CYCLES"
+            scene.cycles.samples = samples
+            scene.render.use_persistent_data = True
+            return f"Cycles {samples} samples, {self.device}"
+        engines = {item.identifier for item in bpy.types.RenderSettings.bl_rna.properties["engine"].enum_items}
+        scene.render.engine = "BLENDER_EEVEE_NEXT" if "BLENDER_EEVEE_NEXT" in engines else "BLENDER_EEVEE"
+        eevee = scene.eevee
+        eevee.taa_render_samples = samples
+        for name, value in (("use_shadows", True), ("use_soft_shadows", True), ("use_gtao", True), ("shadow_ray_count", 2), ("shadow_step_count", 8)):
+            if hasattr(eevee, name):
+                try:
+                    setattr(eevee, name, value)
+                except (TypeError, AttributeError):
+                    pass
+        return f"EEVEE {samples} samples"
+
+    def setup_stamp(self, height):
+        render = self.scene.render
+        render.use_stamp = True
+        for name in ("date", "time", "render_time", "frame", "frame_range", "memory", "hostname", "camera", "lens", "scene", "marker", "filename", "sequencer_strip"):
+            attribute = f"use_stamp_{name}"
+            if hasattr(render, attribute):
+                setattr(render, attribute, False)
+        render.use_stamp_note = True
+        render.use_stamp_labels = False
+        render.stamp_font_size = max(12, int(height / 30))
+        render.stamp_foreground = (1.0, 1.0, 1.0, 1.0)
+        render.stamp_background = (0.0, 0.0, 0.0, 0.45)
+
+    def ground_material(self, cell):
+        material = bpy.data.materials.new("ClipGround")
+        material.use_nodes = True
+        nodes, links = material.node_tree.nodes, material.node_tree.links
+        nodes.clear()
+        output = nodes.new("ShaderNodeOutputMaterial")
+        checker = nodes.new("ShaderNodeMix")
+        checker.data_type = "RGBA"
+        if cell:
+            coordinates = nodes.new("ShaderNodeTexCoord")
+            across, _, along = separate(nodes, links, coordinates.outputs["Object"])
+            cells = socket_math(nodes, links, "ADD", socket_math(nodes, links, "FLOOR", socket_math(nodes, links, "DIVIDE", across, cell)), socket_math(nodes, links, "FLOOR", socket_math(nodes, links, "DIVIDE", along, cell)))
+            links.new(socket_math(nodes, links, "FLOORED_MODULO", cells, 2.0), checker.inputs["Factor"])
+        else:
+            checker.inputs["Factor"].default_value = 0.5
+        checker.inputs["A"].default_value = (*[srgb_to_linear(value) for value in CLIP_GROUND_DARK], 1.0)
+        checker.inputs["B"].default_value = (*[srgb_to_linear(value) for value in CLIP_GROUND_LIGHT], 1.0)
+        # fading by distance from the camera keeps a tracking camera's loop seamless; a fixed fade point would not be
+        camera = nodes.new("ShaderNodeCameraData")
+        fade = nodes.new("ShaderNodeMapRange")
+        fade.interpolation_type = "SMOOTHSTEP"
+        fade.inputs["From Min"].default_value = CLIP_GROUND_FADE[0]
+        fade.inputs["From Max"].default_value = CLIP_GROUND_FADE[1]
+        links.new(camera.outputs["View Distance"], fade.inputs["Value"])
+        flat = nodes.new("ShaderNodeMix")
+        flat.data_type = "RGBA"
+        links.new(fade.outputs["Result"], flat.inputs["Factor"])
+        links.new(checker.outputs["Result"], flat.inputs["A"])
+        flat.inputs["B"].default_value = (*[srgb_to_linear((dark + light) / 2) for dark, light in zip(CLIP_GROUND_DARK, CLIP_GROUND_LIGHT)], 1.0)
+        shader = nodes.new("ShaderNodeBsdfPrincipled")
+        shader.inputs["Roughness"].default_value = 0.92
+        links.new(flat.outputs["Result"], shader.inputs["Base Color"])
+        links.new(shader.outputs[0], output.inputs["Surface"])
+        return material
+
+    def ground_object(self, collection, centre, basis, cell):
+        forward, right, up = basis
+        extent = CLIP_GROUND_EXTENT
+        mesh = bpy.data.meshes.new("ClipGround")
+        mesh.from_pydata([(-extent, 0.0, -extent), (-extent, 0.0, extent), (extent, 0.0, extent), (extent, 0.0, -extent)], [], [(0, 1, 2, 3)])
+        mesh.materials.append(self.ground_material(cell))
+        holder = bpy.data.objects.new("ClipGround", mesh)
+        rotation = Matrix((right, up, -forward)).transposed().to_4x4()
+        rotation.translation = Vector(centre)
+        holder.matrix_world = rotation
+        collection.objects.link(holder)
+        return holder
+
+    def clip_camera(self, view, explicit, points, basis, fov, aspect):
+        forward, right, up = basis
+        if explicit:
+            def world(vector):
+                return right * vector[0] + up * vector[1] - forward * vector[2]
+            eye, target = world(explicit["eye"]), world(explicit.get("target", (0, 0, 0)))
+            return eye, target, up, float(explicit.get("fov", fov))
+        ahead, side, rise = CLIP_VIEWS[view]
+        direction = (forward * ahead + right * side + up * rise).normalized()
+        screen_up = forward if view == "top" else up
+        matrix = look_matrix((0, 0, 0), direction, screen_up)
+        axis_x, axis_y, axis_z = (np.array(matrix.col[index][:3]) for index in range(3))
+        across, height, depth = points @ axis_x, points @ axis_y, points @ axis_z
+        centre = axis_x * (across.min() + across.max()) / 2 + axis_y * (height.min() + height.max()) / 2 + axis_z * (depth.min() + depth.max()) / 2
+        relative = points - centre
+        # a point at depth z in front of a camera D back from the centre fits when |x| <= (D - z) tan(half angle)
+        tan_vertical = math.tan(math.radians(fov) / 2) / CLIP_MARGIN
+        tan_horizontal = tan_vertical * aspect
+        distance = float(np.max(relative @ axis_z + np.maximum(np.abs(relative @ axis_x) / tan_horizontal, np.abs(relative @ axis_y) / tan_vertical)))
+        return Vector(centre) + direction * distance, Vector(centre), screen_up, fov
+
+    def render_clip(self, clip_index, clip, settings):
+        label = clip.get("label", f"clip {clip_index + 1}")
+        count = int(clip["count"])
+        step = float(clip["step"])
+        statics = clip["parts"]
+        poses = np.array([np.array(text.split(","), dtype=np.float64) for text in clip["poses"]]).reshape(count, len(statics), 12)
+        matrices = np.zeros((count, len(statics), 4, 4))
+        matrices[:, :, 3, 3] = 1.0
+        matrices[:, :, :3, 3] = poses[:, :, 0:3]
+        matrices[:, :, :3, :3] = poses[:, :, 3:12].reshape(count, len(statics), 3, 3)
+        collection = bpy.data.collections.new(f"Clip{clip_index}")
+        self.scene.collection.children.link(collection)
+        self.collections.append(collection)
+        for other in self.collections:
+            other.hide_render = other is not collection
+        holders = []
+        for slot, record in enumerate(statics):
+            info = self.parts[int(record[0])]
+            for holder in self.make_part(info, Matrix(matrices[0, slot].tolist()), record[1:4], record[4:7], float(record[7]), collection):
+                holders.append((holder, slot))
+        if not holders:
+            self.warnings.append(f"{label}: nothing visible to draw")
+            return None
+        forward = Vector(clip.get("forward", (0, 0, -1))).normalized()
+        up = Vector((0.0, 1.0, 0.0))
+        right = forward.cross(up).normalized()
+        basis = (forward, right, up)
+        travel_setting = settings.get("travel", "auto")
+        if travel_setting == "off":
+            speed = 0.0
+        elif travel_setting == "auto":
+            speed = float(clip.get("groundSpeed") or 0.0)
+        else:
+            speed = float(travel_setting)
+        track = settings.get("track", True)
+        loops = max(1, int(clip.get("loops", 1)))
+        looped = bool(clip.get("loop", True))
+        loop_travel = speed * count * step if looped else 0.0
+        total = count * loops if speed > 0 and not track and looped else count
+        times = np.arange(total) * step
+        offsets = np.outer(times * speed, np.array(forward))
+        rotations = matrices[:, :, :3, :3]
+        translations = matrices[:, :, :3, 3]
+        corners = []
+        lowest = np.inf
+        for holder, slot in holders:
+            box = np.array([corner[:] for corner in holder.bound_box])
+            corners.append((np.einsum("fij,cj->fci", rotations[:, slot], box) + translations[:, slot, None, :]).reshape(-1, 3))
+            if holder.type == "MESH" and len(holder.data.vertices):
+                vertices = np.empty(len(holder.data.vertices) * 3)
+                holder.data.vertices.foreach_get("co", vertices)
+                heights = rotations[:, slot, 1, :] @ vertices.reshape(-1, 3).T + translations[:, slot, 1, None]
+                lowest = min(lowest, float(heights.min()))
+        points = np.concatenate(corners)
+        ground = float(clip["ground"]) if clip.get("ground") is not None else lowest
+        if not track and speed > 0 and len(offsets):
+            points = np.concatenate([points, points + offsets[-1]])
+        cell = float(settings.get("grid", CLIP_GRID))
+        if track and loop_travel > 1e-6:
+            # one loop's travel must hold a whole number of checker periods (two cells) for the loop to repeat exactly
+            cell = loop_travel / (2 * max(1, round(loop_travel / (2 * cell))))
+        if settings.get("ground", "grid") != "off":
+            midpoint = (np.array(offsets[0]) + np.array(offsets[-1])) / 2 if len(offsets) else np.zeros(3)
+            ground_holder = self.ground_object(collection, (float(midpoint[0]), ground, float(midpoint[2])), basis, cell if settings.get("ground", "grid") == "grid" else None)
+        width, height = settings.get("size", CLIP_SIZE)
+        aspect = width / height
+        fov = float(settings.get("fov", CLIP_FOV))
+        explicit_cameras = clip.get("cameras") or {}
+        views = []
+        for view in settings.get("views") or ["side", "chase"]:
+            if view not in CLIP_VIEWS and view not in explicit_cameras:
+                raise RuntimeError(f"unknown clip view {view}; use {', '.join(list(CLIP_VIEWS) + list(explicit_cameras))}")
+            eye, target, screen_up, view_fov = self.clip_camera(view, explicit_cameras.get(view), points, basis, fov, aspect)
+            views.append({"name": view, "eye": Vector(eye), "target": Vector(target), "up": Vector(screen_up), "fov": view_fov})
+        frames_root = os.path.join(self.out_dir, f"{slug(label)}_frames")
+        for view in views:
+            view["dir"] = os.path.join(frames_root, slug(view["name"]))
+            os.makedirs(view["dir"], exist_ok=True)
+        self.scene.render.resolution_x = int(width)
+        self.scene.render.resolution_y = int(height)
+        self.scene.render.resolution_percentage = 100
+        # JPEG frames save about 0.1 s faster than PNG at 720p, and H.264 subsamples chroma the same way afterwards
+        self.scene.render.image_settings.file_format = "JPEG"
+        self.scene.render.image_settings.color_mode = "RGB"
+        self.scene.render.image_settings.quality = 95
+        self.scene.render.film_transparent = False
+        self.flat_switch.outputs[0].default_value = 0.0
+        labels = settings.get("labels", True)
+        self.scene.render.use_stamp = bool(labels)
+        if labels:
+            self.setup_stamp(height)
+        motion = "in place" if speed <= 0 else f"{speed:g} studs/s"
+        started = time.time()
+        for frame_number in range(total):
+            pose = frame_number % count
+            offset = Vector(offsets[frame_number])
+            for holder, slot in holders:
+                matrix = Matrix(matrices[pose, slot].tolist())
+                matrix.translation += offset
+                holder.matrix_world = matrix
+            for view in views:
+                shift = offset if track else Vector((0.0, 0.0, 0.0))
+                eye = view["eye"] + shift
+                self.aim_perspective(eye, eye - (view["target"] + shift), view["up"], view["fov"], 0.1, 6000.0)
+                if labels:
+                    self.scene.render.stamp_note_text = f"{label}   {view['name']}   {pose * step:5.2f} s   {motion}"
+                self.scene.render.filepath = os.path.join(view["dir"], f"{frame_number:04d}.jpg")
+                bpy.ops.render.render(write_still=True)
+        seconds = time.time() - started
+        for holder, _ in holders:
+            holder.hide_render = True
+        if settings.get("ground", "grid") != "off":
+            ground_holder.hide_render = True
+        return {
+            "label": label,
+            "fps": float(clip.get("fps", 30)),
+            "step": step,
+            "count": count,
+            "rendered": total,
+            "loops": loops,
+            "loopsRendered": loops if total > count else 1,
+            "loop": looped,
+            "duration": float(clip.get("duration", count * step)),
+            "speed": speed,
+            "track": bool(track),
+            "grid": cell,
+            "ground": ground,
+            "size": [int(width), int(height)],
+            "views": [{"name": view["name"], "dir": view["dir"], "fov": view["fov"], "eye": list(view["eye"]), "target": list(view["target"])} for view in views],
+            "tracks": clip.get("tracks", []),
+            "renderSeconds": round(seconds, 2),
+        }
+
+    def run_clips(self):
+        settings = dict(self.options.get("clip") or {})
+        engine = settings.get("engine", "eevee")
+        samples = int(settings.get("samples") or CLIP_SAMPLES.get(engine, 16))
+        self.clip_engine = self.setup_clip_engine(engine, samples)
+        self.shadow_flip = engine == "cycles"
+        results = []
+        for index, clip in enumerate(self.data["clips"]):
+            result = self.render_clip(index, clip, settings)
+            if result:
+                results.append(result)
+        return results
+
 
 def read_png(path):
     image = bpy.data.images.load(path)
@@ -925,21 +1203,27 @@ def compose(tiles, path):
 
 def main():
     argv = sys.argv[sys.argv.index("--") + 1:]
-    scene_path, out_dir = argv[0], argv[1]
+    scene_path, out_dir = argv[0], os.path.abspath(argv[1])
     started = time.time()
     with open(scene_path, "r", encoding="utf-8") as handle:
         data = json.load(handle)
     os.makedirs(out_dir, exist_ok=True)
     renderer = Renderer(data, out_dir)
     icon = data.get("options", {}).get("icon")
-    tiles = renderer.run_icons() if icon else renderer.run()
-    if not tiles:
-        raise RuntimeError("nothing to render: every snapshot was empty")
-    if icon:
-        sheet = tiles[0][0]
-    else:
-        sheet = os.path.join(out_dir, f"{slug(data.get('name', 'shot'))}_sheet.png")
-        compose(tiles, sheet)
+    tiles = []
+    sheet = None
+    if data.get("frames") or not data.get("clips"):
+        tiles = renderer.run_icons() if icon else renderer.run()
+        if not tiles:
+            raise RuntimeError("nothing to render: every snapshot was empty")
+        if icon:
+            sheet = tiles[0][0]
+        else:
+            sheet = os.path.join(out_dir, f"{slug(data.get('name', 'shot'))}_sheet.png")
+            compose(tiles, sheet)
+    clips = renderer.run_clips() if data.get("clips") else []
+    if data.get("clips") and not clips:
+        raise RuntimeError("nothing to render: every clip was empty")
     report = {
         "sheet": sheet,
         "tiles": [path for path, _ in tiles],
@@ -950,6 +1234,9 @@ def main():
         "seconds": round(time.time() - started, 2),
         "blender": bpy.app.version_string,
     }
+    if clips:
+        report["clips"] = clips
+        report["clipEngine"] = renderer.clip_engine
     print("ASSETSHOT " + json.dumps(report), flush=True)
 
 
