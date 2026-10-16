@@ -48,6 +48,9 @@ Never use git in a game project: no `git init`, commits, branches or branch prop
 ## Demos
 After a change that alters what a player sees or does in play (a mechanic, a UI, an animation, an effect, an NPC), close the reply with one line asking whether the user wants a `/demo` video of it. The user is often away on a phone and cannot playtest, so the demo is how they see it. Skip the offer for docs, tooling, art review and pure refactors.
 
+## Cutscenes
+Cutscenes are composed on Opus 5.5, because they require spatial judgement. Shot lists, camera framing and paths, actor blocking and timing go to an Opus agent; Sonnet builds only the plumbing (the stage machine, the shot sequencer, the skip button, remotes). Split every cutscene into a Sonnet code brief and an Opus composition brief.
+
 ## Studio
 Follow the Studio MCP rules in `~/.claude/skills/studio/SKILL.md` § Studio MCP rules in every session that touches Studio. Check assets with `/assetshot`, never through Studio's camera or `capture_screenshot`. In a project with `game-source/`, edit scripts on disk and push them with `/studio`'s `sync.js`, never through `set_script_source`.
 
